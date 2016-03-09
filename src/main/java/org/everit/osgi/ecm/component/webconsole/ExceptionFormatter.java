@@ -28,7 +28,7 @@ public class ExceptionFormatter {
    *
    * @param throwable
    *          The {@link Throwable} that should be converted to a {@link String} representation.
-   * 
+   *
    * @return The {@link String} representation of the {@link Throwable}.
    */
   public String format(final Throwable throwable) {

@@ -134,8 +134,8 @@ public class TemplateUtil {
       if (clauseEntry.getKey().equals(Constants.SERVICE_ID)) {
         sb.append("<a href=\"services/" + clauseEntry.getValue()
             + "\" class=\"reqCapLink\">service.id=" + clauseEntry.getValue() + "</a>");
-      } else
-        if (clauseEntry.getKey().equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID)) {
+      } else if (clauseEntry.getKey()
+          .equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID)) {
         sb.append("<a href=\"#" + clauseEntry.getValue()
             + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
             + clauseEntry.getValue() + "');return false;\">"

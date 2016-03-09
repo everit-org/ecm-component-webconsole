@@ -23,12 +23,12 @@
   <parent>
     <groupId>org.everit.config</groupId>
     <artifactId>org.everit.config.oss</artifactId>
-    <version>7.0.1</version>
+    <version>7.2.0</version>
   </parent>
 
   <groupId>org.everit.osgi</groupId>
   <artifactId>org.everit.osgi.ecm.component.webconsole</artifactId>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.2.0</version>
 
   <packaging>bundle</packaging>
 
@@ -37,8 +37,8 @@
 
   <properties>
     <projectpath>ecm-component-webconsole</projectpath>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 
   <licenses>
@@ -121,17 +121,17 @@
     <dependency>
       <groupId>org.everit.expression</groupId>
       <artifactId>org.everit.expression.jexl</artifactId>
-      <version>1.0.0</version>
+      <version>2.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.everit.templating</groupId>
       <artifactId>org.everit.templating.text</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.everit.templating</groupId>
       <artifactId>org.everit.templating.html</artifactId>
-      <version>1.1.2</version>
+      <version>1.2.0</version>
     </dependency>
   </dependencies>
 

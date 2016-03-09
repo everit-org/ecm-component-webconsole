@@ -122,18 +122,18 @@ tr > td.lastCapability {
               data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?factoryCreate=true&referer=' + pluginRoot">&nbsp;</a></li>
           </ul>
           <ul class="icons headerConfigButton"
-            data-eht-render="(cc.getResources().length == 0) && ((cc.componentMetadata.configurationPolicy.name() == 'OPTIONAL') || (cc.componentMetadata.configurationPolicy.name() == 'REQUIRE'))">
+            data-eht-render="(empty(cc.getResources())) && ((cc.componentMetadata.configurationPolicy.name() == 'OPTIONAL') || (cc.componentMetadata.configurationPolicy.name() == 'REQUIRE'))">
             <li class="dynhover ui-state-default ui-corner-all" title="Create new configuration"><a
               class="ui-icon ui-icon-wrench"
               data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?referer=' + pluginRoot">&nbsp;</a></li>
           </ul></th>
       </tr>
-      <tr data-eht-render="cc.getResources().length > 0">
+      <tr data-eht-render="size(cc.getResources()) > 0">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
         <th class="col_Name ui-widget-header header">Actions</th>
       </tr>
-      <tr data-eht-render="cc.getResources().length == 0" style="border: medium none;"><td style="border: medium none;">&nbsp;</td></tr>
+      <tr data-eht-render="empty(cc.getResources())" style="border: medium none;"><td style="border: medium none;">&nbsp;</td></tr>
 
       <tr data-eht-attr-id="consoleUtil.getId(componentRevision)" class="ui-state-default"
         data-eht-foreach="var iterationKey = ['componentRevision', 'crIdx'];return {iterationKey : cc.getResources()}"
