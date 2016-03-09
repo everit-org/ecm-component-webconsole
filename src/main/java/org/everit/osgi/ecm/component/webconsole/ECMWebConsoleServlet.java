@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.everit.expression.ExpressionCompiler;
 import org.everit.expression.ParserConfiguration;
-import org.everit.expression.mvel.MvelExpressionCompiler;
+import org.everit.expression.jexl.JexlExpressionCompiler;
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
 import org.everit.osgi.ecm.component.resource.ComponentState;
@@ -93,7 +93,7 @@ public class ECMWebConsoleServlet implements Servlet {
     this.bundleContext = bundleContext;
     classLoader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
 
-    ExpressionCompiler expressionCompiler = new MvelExpressionCompiler();
+    ExpressionCompiler expressionCompiler = new JexlExpressionCompiler();
 
     TextTemplateCompiler textTemplateCompiler = new TextTemplateCompiler(expressionCompiler);
 

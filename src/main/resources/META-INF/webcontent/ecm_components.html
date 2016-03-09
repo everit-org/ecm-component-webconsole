@@ -107,13 +107,13 @@ tr > td.lastCapability {
   </p>
 
   <table id="plugin_table" class="tablesorter nicetable noauto ui-widget">
-    <tbody data-eht-foreach="[({'ccSR', 'ccsrIdx'}) : ccMap.keySet()]" data-eht-render="'content'"
-      data-eht-var="['cc' : ccMap.get(ccSR)]">
+    <tbody data-eht-foreach="var iterationKey = ['ccSR','ccsrIdx'];return {iterationKey : ccMap.keySet()}" data-eht-render="'content'"
+      data-eht-var="{'cc' : ccMap.get(ccSR)}">
       <tr>
         <th class="ui-widget-header" colspan="3"><a
-          data-eht-var="['serviceId' : ccSR.getProperty('service.id')]"
+          data-eht-var="{'serviceId' : ccSR.getProperty('service.id')}"
           data-eht-attr-href="appRoot + '/services/' + serviceId" data-eht-text="serviceId">1</a> -
-          <span data-eht-var="['mpp' : cc]"
+          <span data-eht-var="{'mpp' : cc}"
           data-eht-text="mpp.getObjectClassDefinition(null, null).name">Component name</span>
           <ul class="icons headerConfigButton"
             data-eht-render="cc.componentMetadata.configurationPolicy.name() == 'FACTORY'">
@@ -122,22 +122,22 @@ tr > td.lastCapability {
               data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?factoryCreate=true&referer=' + pluginRoot">&nbsp;</a></li>
           </ul>
           <ul class="icons headerConfigButton"
-            data-eht-render="(cc.resources.length == 0) && ((cc.componentMetadata.configurationPolicy.name() == 'OPTIONAL') || (cc.componentMetadata.configurationPolicy.name() == 'REQUIRE'))">
+            data-eht-render="(cc.getResources().length == 0) && ((cc.componentMetadata.configurationPolicy.name() == 'OPTIONAL') || (cc.componentMetadata.configurationPolicy.name() == 'REQUIRE'))">
             <li class="dynhover ui-state-default ui-corner-all" title="Create new configuration"><a
               class="ui-icon ui-icon-wrench"
               data-eht-attr-href="appRoot + '/configMgr/' + cc.componentMetadata.componentId + '?referer=' + pluginRoot">&nbsp;</a></li>
           </ul></th>
       </tr>
-      <tr data-eht-render="cc.resources.length > 0">
+      <tr data-eht-render="cc.getResources().length > 0">
         <th class="col_ServiceId ui-widget-header header">Id</th>
         <th class="col_Name ui-widget-header header">State</th>
         <th class="col_Name ui-widget-header header">Actions</th>
       </tr>
-      <tr data-eht-render="cc.resources.length == 0" style="border: medium none;"><td style="border: medium none;">&nbsp;</td></tr>
+      <tr data-eht-render="cc.getResources().length == 0" style="border: medium none;"><td style="border: medium none;">&nbsp;</td></tr>
 
       <tr data-eht-attr-id="consoleUtil.getId(componentRevision)" class="ui-state-default"
-        data-eht-foreach="[({'componentRevision', 'crIdx'}) : cc.resources]"
-        data-eht-var="['servicePid' : componentRevision.properties.get('service.pid')]"
+        data-eht-foreach="var iterationKey = ['componentRevision', 'crIdx'];return {iterationKey : cc.getResources()}"
+        data-eht-var="{'servicePid' : componentRevision.properties.get('service.pid')}"
         data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '"
         data-eht-attrappend-class="' componentState_' + componentRevision.state">
         <td><div class="ui-icon ui-icon-triangle-1-e subpid"
@@ -167,29 +167,29 @@ tr > td.lastCapability {
   <div class="componentRevisionInfo" data-eht-fragment="'componentRevision'"
     data-eht-render="template_ctx.fragmentId == 'componentRevision'">
     <table
-      data-eht-var="['requirements' : revision.getRequirements(null), 'capabilities' : revision.getCapabilities(null)]"
+      data-eht-var="{'requirements' : revision.getRequirements(null), 'capabilities' : revision.getCapabilities(null)}"
       class="borderless-table">
       <tr data-eht-render="requirements.size() > 0">
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
           colspan="2">Requirements</td>
       </tr>
       <tr data-eht-render="requirements.size() > 0"
-        data-eht-foreach="['requirement' : requirements]"
-        data-eht-code="var isServiceReq = requirement.acceptedCapabilityType.getName() == 'org.everit.osgi.linkage.ServiceCapability';
+        data-eht-foreach="{'requirement' : requirements}"
+        data-eht-code="isServiceReq = requirement.acceptedCapabilityType.getName() == 'org.everit.osgi.linkage.ServiceCapability';
       isBundleReq = requirement.acceptedCapabilityType.getName() == 'org.osgi.framework.wiring.BundleCapability';">
         <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement
           name[0]</td>
         <td>
           <div data-eht-attr-class="(requirement.satisfied) ? null : 'unsatisfiedRequirement'"
-            data-eht-var="['wires' : revision.componentContainer.getWiresByRequirement(requirement)]">
+            data-eht-var="{'wires' : revision.componentContainer.getWiresByRequirement(requirement)}">
             <ul class="reqCapList">
               <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
               <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span data-eht-text="requirement.namespace">foo</span>",</li>
               <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
               <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",</li>
               <li>&nbsp;&nbsp;"Bound" : {
-                <ul class="reqCapList" data-eht-foreach="[({'wire', 'wireIndex'}) : wires]" data-eht-var="['wiredCapability' : wire.capability]">
-                  <li data-eht-render="(isBundleReq)">"Bundle" : "<a data-eht-var="['bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version]" data-eht-text="bundleId + ' - ' + symbolicName + ':' + version" data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId - symbolicname:version</a>",</li>
+                <ul class="reqCapList" data-eht-foreach="var iterationKey = ['wire', 'wireIndex'];return {iterationKey : wires}" data-eht-var="{'wiredCapability' : wire.capability}">
+                  <li data-eht-render="(isBundleReq)">"Bundle" : "<a data-eht-var="{'bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version}" data-eht-text="bundleId + ' - ' + symbolicName + ':' + version" data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId - symbolicname:version</a>",</li>
                   <li>"<span data-eht-utext="'Capability&quot; : &quot;' + templateUtil.toString(wiredCapability)"></span>" }</li>
                 </ul>
               </li>
@@ -202,9 +202,9 @@ tr > td.lastCapability {
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
           colspan="2">Capabilities</td>
       </tr>
-      <tr data-eht-foreach="[({'capability', 'capabilityIndex'}) : capabilities]">
+      <tr data-eht-foreach="var iterationKey = ['capability', 'capabilityIndex'];return {iterationKey : capabilities}">
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
-        <td class="aligntop" data-eht-attrappend-class="(capabilityIndex < (capabilities.size - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size - 1) ? ' lastCapability' : '')">
+        <td class="aligntop" data-eht-attrappend-class="(capabilityIndex < (capabilities.size() - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size() - 1) ? ' lastCapability' : '')">
           <ul class="reqCapList">
             <li data-eht-utext="'[ &quot' + templateUtil.toString(capability) + '&quot ]'">[...]</li>
           </ul>
@@ -214,13 +214,13 @@ tr > td.lastCapability {
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
           colspan="2">Properties</td>
       </tr>
-      <tr data-eht-foreach="['propEntry' : revision.properties.entrySet()]">
+      <tr data-eht-foreach="{'propEntry' : revision.properties.entrySet()}">
         <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.key">Property
           name</td>
         <td class="aligntop" style="border: 0px none"
           data-eht-text="templateUtil.toString(propEntry.value)">Property value</td>
       </tr>
-      <tr data-eht-render="revision.processingThread != null">
+      <tr data-eht-render="revision.getProcessingThread() != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Processing thread</td>
         <td class="aligntop" style="border: 0px none"><a
           data-eht-attr-href="appRoot + '/threads/' + revision.processingThread.id"
@@ -228,7 +228,7 @@ tr > td.lastCapability {
           data-eht-text="revision.processingThread.id + ' - ' + revision.processingThread.name">id
             - name</a></td>
       </tr>
-      <tr data-eht-render="revision.cause != null">
+      <tr data-eht-render="revision.getCause() != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Cause</td>
         <td class="aligntop" style="border: 0px none"><pre
             data-eht-text="exceptionFormatter.format(revision.cause)" class="stacktrace">Some stacktrace</pre></td>
