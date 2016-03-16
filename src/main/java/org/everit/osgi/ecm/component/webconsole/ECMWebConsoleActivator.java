@@ -20,6 +20,7 @@ import java.util.Hashtable;
 import javax.servlet.Servlet;
 
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
+import org.everit.osgi.ecm.component.webconsole.graph.ECMGraphWebConsolePlugin;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -32,16 +33,34 @@ public class ECMWebConsoleActivator implements BundleActivator {
 
   private ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
 
-  private ServiceRegistration<Servlet> servletSR;
+  private ServiceRegistration<Servlet> graphPluginSR;
 
-  @Override
-  public void start(final BundleContext context) {
+  private ServiceRegistration<Servlet> tablePluginSR;
+
+  private void registerGraphPlugin(final BundleContext context) {
+    Hashtable<String, String> servletProps = new Hashtable<String, String>();
+    servletProps.put("felix.webconsole.label", "everit_ecm_component_graph");
+    servletProps.put("felix.webconsole.category", "Everit");
+    servletProps.put("felix.webconsole.title", "ECM Component Graph");
+    servletProps.put("felix.webconsole.css", "res/visjs/vis.min.css");
+
+    Servlet servlet = new ECMGraphWebConsolePlugin(containerTracker, context);
+    graphPluginSR = context.registerService(Servlet.class, servlet, servletProps);
+  }
+
+  private void registerTablePlugin(final BundleContext context) {
     Hashtable<String, String> servletProps = new Hashtable<String, String>();
     servletProps.put("felix.webconsole.label", "everit_ecm_component");
     servletProps.put("felix.webconsole.category", "Everit");
     servletProps.put("felix.webconsole.title", "ECM Components");
     servletProps.put("felix.webconsole.css", "res/ui/config.css");
 
+    Servlet servlet = new ECMWebConsoleServlet(containerTracker, context);
+    tablePluginSR = context.registerService(Servlet.class, servlet, servletProps);
+  }
+
+  @Override
+  public void start(final BundleContext context) {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     Class<ComponentContainer<?>> clazz = (Class) ComponentContainer.class;
 
@@ -49,13 +68,14 @@ public class ECMWebConsoleActivator implements BundleActivator {
         clazz, null);
     containerTracker.open();
 
-    Servlet servlet = new ECMWebConsoleServlet(containerTracker, context);
-    servletSR = context.registerService(Servlet.class, servlet, servletProps);
+    registerTablePlugin(context);
+    registerGraphPlugin(context);
   }
 
   @Override
   public void stop(final BundleContext context) {
-    servletSR.unregister();
+    tablePluginSR.unregister();
+    graphPluginSR.unregister();
     containerTracker.close();
   }
 
