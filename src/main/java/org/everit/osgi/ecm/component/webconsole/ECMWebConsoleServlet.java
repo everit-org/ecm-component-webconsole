@@ -15,11 +15,8 @@
  */
 package org.everit.osgi.ecm.component.webconsole;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -110,7 +107,8 @@ public class ECMWebConsoleServlet implements Servlet {
     parserConfiguration.setVariableTypes(variableTypes);
 
     componentsTemplate = htmlTemplateCompiler.compile(
-        readResource("META-INF/webcontent/ecm_components.html"),
+        StreamUtil.readContent(
+            classLoader.getResourceAsStream("META-INF/webcontent/ecm_components.html")),
         parserConfiguration);
 
   }
@@ -220,25 +218,6 @@ public class ECMWebConsoleServlet implements Servlet {
   @Override
   public void init(final ServletConfig config) throws ServletException {
     servletConfig = config;
-
-  }
-
-  private String readResource(final String resourceName) {
-    InputStream inputStream = classLoader.getResourceAsStream(resourceName);
-    final int bufferSize = 1024;
-
-    byte[] buf = new byte[bufferSize];
-    try {
-      int r = inputStream.read(buf);
-      ByteArrayOutputStream bout = new ByteArrayOutputStream();
-      while (r > -1) {
-        bout.write(buf, 0, r);
-        r = inputStream.read(buf);
-      }
-      return new String(bout.toByteArray(), Charset.forName("UTF8"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
 
   }
 

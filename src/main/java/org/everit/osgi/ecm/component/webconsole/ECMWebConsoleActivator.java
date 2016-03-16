@@ -39,10 +39,11 @@ public class ECMWebConsoleActivator implements BundleActivator {
 
   private void registerGraphPlugin(final BundleContext context) {
     Hashtable<String, String> servletProps = new Hashtable<String, String>();
-    servletProps.put("felix.webconsole.label", "everit_ecm_component_graph");
+    servletProps.put("felix.webconsole.label", ECMGraphWebConsolePlugin.LABEL);
     servletProps.put("felix.webconsole.category", "Everit");
     servletProps.put("felix.webconsole.title", "ECM Component Graph");
-    servletProps.put("felix.webconsole.css", "res/visjs/vis.min.css");
+    servletProps.put("felix.webconsole.css",
+        "/" + ECMGraphWebConsolePlugin.LABEL + "/res/visjs/vis.min.css");
 
     Servlet servlet = new ECMGraphWebConsolePlugin(containerTracker, context);
     graphPluginSR = context.registerService(Servlet.class, servlet, servletProps);

@@ -1,0 +1,56 @@
+<div style="clear: both; margin-top: 2em; border: 1px solid #ccc; border-radius: 5px;">
+<div id="ecmGraph" style="box-sizing: border-box; width: 100%; min-height: 300px; "></div>
+
+<script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/visjs/vis.min.js'"></script>
+<script type="text/javascript">
+
+// create an array with nodes
+var nodes = new vis.DataSet([
+  {id: 1, label: 'Node 1dfd', shape: 'circle', title: 'my title', value : 10, scaling: {label : {enabled : true}}},
+  {id: 2, label: 'Node 2asdf\fdfd', shape: 'box', value : 10, scaling: {label : {enabled : true}}},
+  {id: 3, label: 'No', shape: 'circle', value : 10, scaling: {label : {enabled : true}}},
+  {id: 4, label: 'Node 4ffff\nfffffffffffffff', shape: 'box', value : 10, scaling: {label : {enabled : true}}},
+  {id: 5, label: 'Node 5', shape: 'box', value : 10, scaling: {label : {enabled : true}}}
+]);
+
+// create an array with edges
+var edges = new vis.DataSet([
+  {from: 1, to: 3, length: 10},
+  {from: 1, to: 2, length: 30},
+  {from: 2, to: 4, length: 180},
+  {from: 2, to: 5, length: 30}
+]);
+
+// create a network
+var container = document.getElementById('ecmGraph');
+var data = {
+  nodes: nodes,
+  edges: edges
+};
+var options = {
+    height: '100%'
+};
+var ecmGraphVis = new vis.Network(container, data, options);
+
+function resizeEcmGraphDiv() {
+  var windowHeight = $(window).height();
+  var ecmGraphDivObj = $('#ecmGraph');
+  var topOfEcmGraph = ecmGraphDivObj.offset().top;
+  var ecmGraphDivHeight = windowHeight - topOfEcmGraph - 20;
+  if (ecmGraphDivHeight < 300) {
+    ecmGraphDivHeight = 300;
+  }
+  
+  ecmGraphVis.setSize('100%', ecmGraphDivHeight + 'px');
+}
+
+$(function() {
+  resizeEcmGraphDiv();
+});
+
+$(window).resize(function() {
+  resizeEcmGraphDiv();
+});
+
+</script>
+</div>
