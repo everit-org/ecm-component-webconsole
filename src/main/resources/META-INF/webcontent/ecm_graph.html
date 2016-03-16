@@ -6,19 +6,19 @@
 
 // create an array with nodes
 var nodes = new vis.DataSet([
-  {id: 1, label: 'Node 1dfd', shape: 'circle', title: 'my title', value : 10, scaling: {label : {enabled : true}}},
-  {id: 2, label: 'Node 2asdf\fdfd', shape: 'box', value : 10, scaling: {label : {enabled : true}}},
-  {id: 3, label: 'No', shape: 'circle', value : 10, scaling: {label : {enabled : true}}},
-  {id: 4, label: 'Node 4ffff\nfffffffffffffff', shape: 'box', value : 10, scaling: {label : {enabled : true}}},
-  {id: 5, label: 'Node 5', shape: 'box', value : 10, scaling: {label : {enabled : true}}}
+  {id: 1, label: 'Node 1dfd', shape: 'box', title: 'my title', level : 1},
+  {id: 2, label: 'Node 2asdf\fdfd', shape: 'box', level : 2},
+  {id: 3, label: 'No', shape: 'box', level : 2},
+  {id: 4, label: 'Node 4ffff\nfffffffffffffff', shape: 'box', level : 2},
+  {id: 5, label: 'Node 5', shape: 'box', level : 2}
 ]);
 
 // create an array with edges
 var edges = new vis.DataSet([
-  {from: 1, to: 3, length: 10},
-  {from: 1, to: 2, length: 30},
-  {from: 2, to: 4, length: 180},
-  {from: 2, to: 5, length: 30}
+  {from: 1, to: 3, label : 'very...', title: 'very long test label'},
+  {from: 1, to: 2},
+  {from: 2, to: 4},
+  {from: 2, to: 5}
 ]);
 
 // create a network
@@ -28,7 +28,8 @@ var data = {
   edges: edges
 };
 var options = {
-    height: '100%'
+    height : '100%',
+    layout : {hierarchical : {enabled : true}}
 };
 var ecmGraphVis = new vis.Network(container, data, options);
 
