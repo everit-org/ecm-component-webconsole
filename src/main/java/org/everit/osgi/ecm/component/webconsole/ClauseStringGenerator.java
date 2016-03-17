@@ -28,9 +28,16 @@ import org.osgi.resource.Requirement;
 /**
  * Util class to show the template.
  */
-public class ClauseUtil {
+public class ClauseStringGenerator {
 
   private static final String CLAUSE_SEPARATOR = ";";
+
+  public static String escapeClauseValue(final String text) {
+    if (text == null) {
+      return "";
+    }
+    return text.replace(CLAUSE_SEPARATOR, "\\;").replace("\"", "\\\"").replace("\\", "\\\\");
+  }
 
   private ClauseAttributeValueConverter attributeValueConverter = null;
 
@@ -62,13 +69,6 @@ public class ClauseUtil {
     }
     sb.append(translateClauseMap(attributes, "="));
     return sb.toString();
-  }
-
-  private String escapeClauseValue(final String text) {
-    if (text == null) {
-      return "";
-    }
-    return text.replace(CLAUSE_SEPARATOR, "\\;").replace("\"", "\\\"").replace("\\", "\\\\");
   }
 
   public void setAttributeValueConverter(

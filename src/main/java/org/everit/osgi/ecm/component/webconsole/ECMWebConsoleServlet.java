@@ -271,7 +271,7 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("appRoot", appRoot);
     vars.put("pluginRoot", pluginRoot);
 
-    ClauseUtil clauseUtil = new ClauseUtil();
+    ClauseStringGenerator clauseUtil = new ClauseStringGenerator();
     clauseUtil.setAttributeValueConverter(new HTMLClauseAttributeValueConverter());
 
     vars.put("templateUtil", clauseUtil);
