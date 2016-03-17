@@ -21,7 +21,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.everit.osgi.ecm.component.ECMComponentConstants;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
@@ -29,22 +28,24 @@ import org.osgi.resource.Requirement;
 /**
  * Util class to show the template.
  */
-public class TemplateUtil {
+public class ClauseUtil {
 
   private static final String CLAUSE_SEPARATOR = ";";
 
-  private void appendStateToSBIfMatches(final StringBuilder sb, final int stateMask,
-      final int expectedState,
-      final String stateName) {
-    if ((stateMask & expectedState) > 0) {
-      if (sb.length() > 0) {
-        sb.append("|");
-      }
-      sb.append(stateName);
-    }
-  }
+  private ClauseAttributeValueConverter attributeValueConverter = null;
 
-  private String convertClauseToString(final String namespace,
+  /**
+   * Converts a clause to a string.
+   *
+   * @param namespace
+   *          The namespace of the clause.
+   * @param directives
+   *          The directives of the clause.
+   * @param attributes
+   *          The attributes of the clause.
+   * @return The string representation of the clause.
+   */
+  public String convertClauseToString(final String namespace,
       final Map<String, String> directives,
       final Map<String, Object> attributes) {
     StringBuilder sb = new StringBuilder(namespace);
@@ -68,6 +69,11 @@ public class TemplateUtil {
       return "";
     }
     return text.replace(CLAUSE_SEPARATOR, "\\;").replace("\"", "\\\"").replace("\\", "\\\\");
+  }
+
+  public void setAttributeValueConverter(
+      final ClauseAttributeValueConverter attributeValueConverter) {
+    this.attributeValueConverter = attributeValueConverter;
   }
 
   /**
@@ -155,24 +161,6 @@ public class TemplateUtil {
       first = false;
 
     }
-    return sb.toString();
-  }
-
-  /**
-   * Translates a Bundle stateMask to a human readable format. Only {@link Bundle#RESOLVED},
-   * {@link Bundle#STARTING}, {@link Bundle#ACTIVE} and {@link Bundle#STOPPING} states are
-   * translated.
-   *
-   * @param stateMask
-   *          The stateMask of the Bundle.
-   * @return The {@link String} representation of the stateMask. E.g.: 'RESOLVED, STARTING'.
-   */
-  public String translateStateMask(final int stateMask) {
-    StringBuilder sb = new StringBuilder();
-    appendStateToSBIfMatches(sb, stateMask, Bundle.RESOLVED, "RESOLVED");
-    appendStateToSBIfMatches(sb, stateMask, Bundle.STARTING, "STARTING");
-    appendStateToSBIfMatches(sb, stateMask, Bundle.ACTIVE, "ACTIVE");
-    appendStateToSBIfMatches(sb, stateMask, Bundle.STOPPING, "STOPPING");
     return sb.toString();
   }
 }

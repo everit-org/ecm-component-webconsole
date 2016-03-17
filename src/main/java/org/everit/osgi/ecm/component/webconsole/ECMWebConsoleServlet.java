@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.everit.expression.ExpressionCompiler;
 import org.everit.expression.ParserConfiguration;
 import org.everit.expression.jexl.JexlExpressionCompiler;
+import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
 import org.everit.osgi.ecm.component.resource.ComponentState;
@@ -54,6 +55,32 @@ import org.osgi.util.tracker.ServiceTracker;
  * Webconsole plugin servlet that shows all ECM components and their states.
  */
 public class ECMWebConsoleServlet implements Servlet {
+
+  private final class HTMLClauseAttributeValueConverter
+      implements ClauseAttributeValueConverter {
+
+    @Override
+    public String toString(final String key, final Object value) {
+      if (key.equals(Constants.SERVICE_ID)) {
+        return "<a href=\"services/" + value + "\" class=\"reqCapLink\">" + value
+            + "</a>";
+      } else if (key
+          .equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID)) {
+        return "<a href=\"#" + value
+            + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '" + value
+            + "');return false;\">" + value + "</a>";
+      } else if (!isEcmFactory
+          && key.equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID)) {
+        sb.append("<a href=\"#" + clauseEntry.getValue()
+            + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
+            + value + "');return false;\">"
+            + ECMComponentConstants.SERVICE_PROP_COMPONENT_ID + "="
+            + value + "</a>");
+      } else {
+        return String.valueOf(value);
+      }
+    }
+  }
 
   private static final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
 
@@ -243,7 +270,11 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("ccMap", containerTracker.getTracked());
     vars.put("appRoot", appRoot);
     vars.put("pluginRoot", pluginRoot);
-    vars.put("templateUtil", new TemplateUtil());
+
+    ClauseUtil clauseUtil = new ClauseUtil();
+    clauseUtil.setAttributeValueConverter(new HTMLClauseAttributeValueConverter());
+
+    vars.put("templateUtil", clauseUtil);
     vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
     vars.put("numberOfComponetntsByState", numberOfComponetntsByState);
     vars.put("consoleUtil", new ECMWebConsoleUtil());

@@ -46,7 +46,11 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
 
   public static final String LABEL = "everit_ecm_component_graph";
 
+  public static final int PLUGIN_ROOT_LENGTH_IN_PATHINFO;
+
   static {
+    PLUGIN_ROOT_LENGTH_IN_PATHINFO = LABEL.length() + 1;
+
     ExpressionCompiler expressionCompiler = new JexlExpressionCompiler();
     TemplateCompiler textTemplateCompiler = new TextTemplateCompiler(expressionCompiler);
 
@@ -96,9 +100,20 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
     return ECMGraphWebConsolePlugin.class.getClassLoader().getResource(resourcePath);
   }
 
+  private void renderGraphJson(final HttpServletRequest req, final HttpServletResponse resp) {
+    // TODO
+  }
+
   @Override
   protected void service(final HttpServletRequest req, final HttpServletResponse resp)
       throws ServletException, IOException {
+
+    String pathInfo = req.getPathInfo().substring(PLUGIN_ROOT_LENGTH_IN_PATHINFO);
+
+    if ("/graph.json".equals(pathInfo)) {
+      renderGraphJson(req, resp);
+      return;
+    }
 
     Map<String, Object> vars = new HashMap<>();
     vars.put("pluginRoot", req.getAttribute("felix.webconsole.pluginRoot"));
