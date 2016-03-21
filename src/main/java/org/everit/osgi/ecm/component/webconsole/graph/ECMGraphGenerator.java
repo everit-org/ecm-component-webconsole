@@ -16,6 +16,8 @@
 package org.everit.osgi.ecm.component.webconsole.graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +45,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Wire;
@@ -87,6 +90,30 @@ public class ECMGraphGenerator {
     this.containerTracker = containerTracker;
   }
 
+  private void addImplementedInterfacesToSet(final Class<?> componentClass,
+      final Set<String> result) {
+
+    Class<?> superclass = componentClass.getSuperclass();
+    if (superclass != null) {
+      addImplementedInterfacesToSet(superclass, result);
+    }
+    Class<?>[] interfaces = componentClass.getInterfaces();
+    for (Class<?> interfaze : interfaces) {
+      result.add(interfaze.getName());
+      addImplementedInterfacesToSet(interfaze, result);
+    }
+
+  }
+
+  private Collection<String> convertClassArrayToStringCollection(
+      final Class<?>[] clazzes) {
+    String[] classNames = new String[clazzes.length];
+    for (int i = 0; i < clazzes.length; i++) {
+      classNames[i] = clazzes[i].getName();
+    }
+    return Arrays.asList(classNames);
+  }
+
   private String convertServiceReferenceToClause(final ServiceReference<?> serviceReference) {
     Map<String, String> directives = Collections.emptyMap();
 
@@ -108,7 +135,7 @@ public class ECMGraphGenerator {
     String capabilityNodeId = null;
     while (capabilityNodeId == null && iterator.hasNext()) {
       GuessedServiceCapability guessedServiceCapability = iterator.next();
-      Object objectClass = componentRequirement.getAttributes().get(Constants.OBJECTCLASS);
+      String objectClass = componentRequirement.getDirectives().get(Constants.OBJECTCLASS);
       if (guessedServiceCapability.objectclasses.contains(objectClass)) {
         String filterString = componentRequirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
         if (filterString == null) {
@@ -180,12 +207,10 @@ public class ECMGraphGenerator {
       ComponentMetadata componentMetadata =
           componentRevision.getComponentContainer().getComponentMetadata();
 
-      ServiceMetadata serviceMetadata = componentMetadata.getService();
-      Class<?>[] serviceClasses =
-          (serviceMetadata != null) ? serviceMetadata.getClazzes() : new Class[0];
+      Set<String> serviceClasses = resolveServiceClasses(componentMetadata, componentRevision
+          .getDeclaringResource().getBundle().adapt(BundleWiring.class).getClassLoader());
+      if (serviceClasses.size() > 0) {
 
-      int i = 0;
-      for (Class<?> serviceClass : serviceClasses) {
         CapabilityNodeDTO capabilityNode = new CapabilityNodeDTO();
         Map<String, Object> componentProperties = componentRevision.getProperties();
         String componentNodeId = resolveComponentNodeId(
@@ -193,13 +218,16 @@ public class ECMGraphGenerator {
                 .get(ECMComponentConstants.SERVICE_PROP_COMPONENT_CONTAINER_SERVICE_ID),
             componentProperties.get(Constants.SERVICE_PID));
 
-        capabilityNode.nodeId = "guessedService." + componentNodeId + "." + (i++);
+        capabilityNode.nodeId = "guessedService." + componentNodeId;
         capabilityNode.componentNodeId = componentNodeId;
         capabilityNode.componentState = componentState;
+        capabilityNode.namespace = "osgi.service";
 
         Map<String, Object> attributes = new LinkedHashMap<>();
-        String serviceClassName = serviceClass.getCanonicalName();
-        attributes.put(Constants.OBJECTCLASS, serviceClassName);
+
+        attributes.put(Constants.OBJECTCLASS,
+            serviceClasses.toArray(new String[serviceClasses.size()]));
+
         attributes.putAll(componentProperties);
         Map<String, String> directives = new HashMap<>();
         directives.put(Constants.EFFECTIVE_DIRECTIVE, "guess");
@@ -210,7 +238,7 @@ public class ECMGraphGenerator {
         capabilityNodes.put(capabilityNode.nodeId, capabilityNode);
 
         GuessedServiceCapability guessedserviceCapability = new GuessedServiceCapability();
-        guessedserviceCapability.objectclass = serviceClassName;
+        guessedserviceCapability.objectclasses = serviceClasses;
         guessedserviceCapability.properties = attributes;
         guessedserviceCapability.nodeId = capabilityNode.nodeId;
         guessedServiceCapabilities.add(guessedserviceCapability);
@@ -372,5 +400,36 @@ public class ECMGraphGenerator {
       }
     }
     return i;
+  }
+
+  private Set<String> resolveServiceClasses(final ComponentMetadata componentMetadata,
+      final ClassLoader componentClassLoader) {
+    ServiceMetadata service = componentMetadata.getService();
+    ServiceMetadata manualService = componentMetadata.getManualService();
+    if (service == null && manualService == null) {
+      return Collections.emptySet();
+    }
+    Set<String> result = new HashSet<>();
+    if (service != null) {
+      Class<?>[] clazzes = service.getClazzes();
+      if (clazzes.length == 0) {
+        String componentType = componentMetadata.getType();
+        Class<?> componentClass;
+        try {
+          componentClass = componentClassLoader.loadClass(componentType);
+        } catch (ClassNotFoundException e) {
+          throw new RuntimeException("The class " + componentType
+              + " cannot be loaded by the classloader of the bundle of the component: "
+              + componentClassLoader, e);
+        }
+        addImplementedInterfacesToSet(componentClass, result);
+      } else {
+        result.addAll(convertClassArrayToStringCollection(clazzes));
+      }
+    }
+    if (manualService != null) {
+      result.addAll(convertClassArrayToStringCollection(manualService.getClazzes()));
+    }
+    return result;
   }
 }
