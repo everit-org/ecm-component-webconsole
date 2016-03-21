@@ -185,12 +185,12 @@ tr > td.lastCapability {
             <ul class="reqCapList">
               <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
               <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span data-eht-text="requirement.namespace">foo</span>",</li>
-              <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
-              <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes" : "<span data-eht-text="templateUtil.translateClauseMap(requirement.attributes, '=')">foo=bar</span>",</li>
+              <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.convertClauseMapToString(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
+              <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes" : "<span data-eht-text="templateUtil.convertClauseMapToString(requirement.attributes, '=')">foo=bar</span>",</li>
               <li>&nbsp;&nbsp;"Bound" : {
                 <ul class="reqCapList" data-eht-foreach="var iterationKey = ['wire', 'wireIndex'];return {iterationKey : wires}" data-eht-var="{'wiredCapability' : wire.capability}">
                   <li data-eht-render="(isBundleReq)">"Bundle" : "<a data-eht-var="{'bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version}" data-eht-text="bundleId + ' - ' + symbolicName + ':' + version" data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId - symbolicname:version</a>",</li>
-                  <li>"<span data-eht-utext="'Capability&quot; : &quot;' + templateUtil.toString(wiredCapability)"></span>" }</li>
+                  <li>"<span data-eht-utext="'Capability&quot; : &quot;' + templateUtil.convertClauseToString(wiredCapability.namespace, wiredCapability.attributes, wiredCapability.directives)"></span>" }</li>
                 </ul>
               </li>
               }
@@ -206,7 +206,7 @@ tr > td.lastCapability {
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
         <td class="aligntop" data-eht-attrappend-class="(capabilityIndex < (capabilities.size() - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size() - 1) ? ' lastCapability' : '')">
           <ul class="reqCapList">
-            <li data-eht-utext="'[ &quot' + templateUtil.toString(capability) + '&quot ]'">[...]</li>
+            <li data-eht-utext="'[ &quot' + templateUtil.convertClauseToString(capability.namespace, capability.attributes, capability.directives) + '&quot ]'">[...]</li>
           </ul>
         </td>
       </tr>
@@ -218,7 +218,7 @@ tr > td.lastCapability {
         <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.key">Property
           name</td>
         <td class="aligntop" style="border: 0px none"
-          data-eht-text="templateUtil.toString(propEntry.value)">Property value</td>
+          data-eht-text="templateUtil.convertEntryValueToString(propEntry.value)">Property value</td>
       </tr>
       <tr data-eht-render="revision.getProcessingThread() != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Processing thread</td>

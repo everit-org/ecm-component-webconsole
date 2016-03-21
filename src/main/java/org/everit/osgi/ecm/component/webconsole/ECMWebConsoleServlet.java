@@ -56,29 +56,45 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class ECMWebConsoleServlet implements Servlet {
 
-  private final class HTMLClauseAttributeValueConverter
-      implements ClauseAttributeValueConverter {
+  private static class CustomClause2StringConverter extends Clause2StringConverter {
 
     @Override
-    public String toString(final String key, final Object value) {
-      if (key.equals(Constants.SERVICE_ID)) {
-        return "<a href=\"services/" + value + "\" class=\"reqCapLink\">" + value
-            + "</a>";
-      } else if (key
-          .equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID)) {
-        return "<a href=\"#" + value
-            + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '" + value
-            + "');return false;\">" + value + "</a>";
-      } else if (!isEcmFactory
-          && key.equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID)) {
-        sb.append("<a href=\"#" + clauseEntry.getValue()
-            + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
-            + value + "');return false;\">"
-            + ECMComponentConstants.SERVICE_PROP_COMPONENT_ID + "="
-            + value + "</a>");
-      } else {
-        return String.valueOf(value);
+    public String convertClauseMapToString(final Map<String, Object> clauseMap,
+        final String equalExpr) {
+      StringBuilder sb = new StringBuilder();
+      Set<Entry<String, Object>> clauseEntrySet = clauseMap.entrySet();
+      boolean first = true;
+      boolean isEcmFactory = clauseMap
+          .containsKey(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID);
+      for (Entry<String, Object> clauseEntry : clauseEntrySet) {
+        if (!first) {
+          sb.append(CLAUSE_SEPARATOR);
+        }
+        if (clauseEntry.getKey().equals(Constants.SERVICE_ID)) {
+          sb.append("<a href=\"services/" + clauseEntry.getValue()
+              + "\" class=\"reqCapLink\">service.id=" + clauseEntry.getValue() + "</a>");
+        } else if (clauseEntry.getKey()
+            .equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID)) {
+          sb.append("<a href=\"#" + clauseEntry.getValue()
+              + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
+              + clauseEntry.getValue() + "');return false;\">"
+              + ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID + "="
+              + clauseEntry.getValue() + "</a>");
+        } else if (!isEcmFactory
+            && clauseEntry.getKey().equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID)) {
+          sb.append("<a href=\"#" + clauseEntry.getValue()
+              + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
+              + clauseEntry.getValue() + "');return false;\">"
+              + ECMComponentConstants.SERVICE_PROP_COMPONENT_ID + "="
+              + clauseEntry.getValue() + "</a>");
+        } else {
+          sb.append(clauseEntry.getKey()).append(equalExpr)
+              .append(escape(convertEntryValueToString(clauseEntry.getValue())));
+        }
+        first = false;
+
       }
+      return sb.toString();
     }
   }
 
@@ -271,8 +287,7 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("appRoot", appRoot);
     vars.put("pluginRoot", pluginRoot);
 
-    ClauseStringGenerator clauseUtil = new ClauseStringGenerator();
-    clauseUtil.setAttributeValueConverter(new HTMLClauseAttributeValueConverter());
+    Clause2StringConverter clauseUtil = new CustomClause2StringConverter();
 
     vars.put("templateUtil", clauseUtil);
     vars.put("exceptionFormatter", EXCEPTION_FORMATTER);

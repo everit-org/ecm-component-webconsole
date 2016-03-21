@@ -1,27 +1,64 @@
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
 import org.everit.osgi.ecm.component.resource.ComponentRequirement;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
+import org.everit.osgi.ecm.component.resource.ComponentState;
+import org.everit.osgi.ecm.component.webconsole.Clause2StringConverter;
+import org.everit.osgi.ecm.metadata.ComponentMetadata;
+import org.everit.osgi.ecm.metadata.ServiceMetadata;
 import org.everit.osgi.linkage.ServiceCapability;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Wire;
+import org.osgi.service.metatype.MetaTypeProvider;
+import org.osgi.service.metatype.ObjectClassDefinition;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ECMGraphGenerator {
+
+  private static class GuessedServiceCapability {
+    public String nodeId;
+
+    String objectclass;
+
+    Map<String, Object> properties;
+  }
 
   public static ECMGraphDTO generate(
       final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker) {
@@ -36,7 +73,7 @@ public class ECMGraphGenerator {
 
   private final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
 
-  private final List<NotRegisteredServiceCapability> notOfferedServiceCapabilities =
+  private final List<GuessedServiceCapability> guessedServiceCapabilities =
       new ArrayList<>();
 
   private final Map<BundleCapability, CapabilityNodeDTO> processedBundleCapabilities =
@@ -50,6 +87,47 @@ public class ECMGraphGenerator {
     this.containerTracker = containerTracker;
   }
 
+  private String convertServiceReferenceToClause(final ServiceReference<?> serviceReference) {
+    Map<String, String> directives = Collections.emptyMap();
+
+    Map<String, Object> attributes = new TreeMap<>();
+    String[] propertyKeys = serviceReference.getPropertyKeys();
+    for (String propertyKey : propertyKeys) {
+      attributes.put(propertyKey, serviceReference.getProperty(propertyKey));
+    }
+
+    return new Clause2StringConverter().convertClauseToString("osgi.service", attributes,
+        directives);
+  }
+
+  private String findGuessedServiceCapability(
+      final ComponentRequirement<?, ?> componentRequirement) {
+
+    Iterator<GuessedServiceCapability> iterator = guessedServiceCapabilities.iterator();
+
+    String capabilityNodeId = null;
+    while (capabilityNodeId == null && iterator.hasNext()) {
+      GuessedServiceCapability guessedServiceCapability = iterator.next();
+      Object objectClass = componentRequirement.getAttributes().get(Constants.OBJECTCLASS);
+      if (guessedServiceCapability.objectclass.equals(objectClass)) {
+        String filterString = componentRequirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
+        if (filterString == null) {
+          capabilityNodeId = guessedServiceCapability.nodeId;
+        } else {
+          try {
+            Filter filter = FrameworkUtil.createFilter(filterString);
+            if (filter.matches(guessedServiceCapability.properties)) {
+              capabilityNodeId = guessedServiceCapability.nodeId;
+            }
+          } catch (InvalidSyntaxException e) {
+            capabilityNodeId = null;
+          }
+        }
+      }
+    }
+    return capabilityNodeId;
+  }
+
   private ECMGraphDTO generate() {
     ComponentContainer<?>[] componentContainers =
         containerTracker.getServices(new ComponentContainer[0]);
@@ -60,6 +138,8 @@ public class ECMGraphGenerator {
         processComponentRevision(componentRevision);
       }
     }
+
+    processUnsatisfiedRequirements();
 
     ECMGraphDTO graph = new ECMGraphDTO();
     graph.components = componentNodes.toArray(new ComponentNodeDTO[componentNodes.size()]);
@@ -90,7 +170,46 @@ public class ECMGraphGenerator {
         ServiceCapability serviceCapability = (ServiceCapability) capability;
         ServiceReference<?> serviceReference = serviceCapability.getServiceReference();
         processServiceReference(serviceReference);
+      }
+    }
 
+    ComponentState componentState = componentRevision.getState();
+    if (componentState == ComponentState.UNSATISFIED || componentState == ComponentState.FAILED) {
+      ComponentMetadata componentMetadata =
+          componentRevision.getComponentContainer().getComponentMetadata();
+
+      ServiceMetadata serviceMetadata = componentMetadata.getService();
+      Class<?>[] serviceClasses = serviceMetadata.getClazzes();
+
+      int i = 0;
+      for (Class<?> serviceClass : serviceClasses) {
+        CapabilityNodeDTO capabilityNode = new CapabilityNodeDTO();
+        Map<String, Object> componentProperties = componentRevision.getProperties();
+        String componentNodeId = resolveComponentNodeId(
+            componentRevision.getProperties()
+                .get(ECMComponentConstants.SERVICE_PROP_COMPONENT_CONTAINER_SERVICE_ID),
+            componentProperties.get(Constants.SERVICE_PID));
+
+        capabilityNode.nodeId = "guessedService." + componentNodeId + "." + (i++);
+        capabilityNode.componentNodeId = componentNodeId;
+
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        String serviceClassName = serviceClass.getCanonicalName();
+        attributes.put(Constants.OBJECTCLASS, serviceClassName);
+        attributes.putAll(componentProperties);
+        Map<String, String> directives = new HashMap<>();
+        directives.put(Constants.EFFECTIVE_DIRECTIVE, "guess");
+        capabilityNode.clause = new Clause2StringConverter().convertClauseToString("osgi.service",
+            componentProperties, directives);
+
+        capabilityNode.capabilityType = CapabilityType.SERVICE;
+        capabilityNodes.put(capabilityNode.nodeId, capabilityNode);
+
+        GuessedServiceCapability guessedserviceCapability = new GuessedServiceCapability();
+        guessedserviceCapability.objectclass = serviceClassName;
+        guessedserviceCapability.properties = attributes;
+        guessedserviceCapability.nodeId = capabilityNode.nodeId;
+        guessedServiceCapabilities.add(guessedserviceCapability);
       }
     }
   }
@@ -103,6 +222,10 @@ public class ECMGraphGenerator {
 
     Wire[] wires = componentRequirement.getResource().getComponentContainer()
         .getWiresByRequirement(componentRequirement);
+
+    result.clause =
+        new Clause2StringConverter().convertClauseToString(componentRequirement.getNamespace(),
+            componentRequirement.getAttributes(), componentRequirement.getDirectives());
 
     if (wires.length == 0) {
       unsatisfiedRequirements.put(result, componentRequirement);
@@ -120,7 +243,6 @@ public class ECMGraphGenerator {
         BundleCapability bundleCapability = (BundleCapability) capability;
         result.capabilityNodeId = processBundleCapability(bundleCapability).nodeId;
       }
-      // TODO
     }
 
     return result;
@@ -155,6 +277,12 @@ public class ECMGraphGenerator {
 
     componentNode.state = componentRevision.getState();
 
+    // FIXME Locale is hardcoded and metatype provider should be retrieved in a typesafe way.
+    MetaTypeProvider metatypeProvider = (MetaTypeProvider) componentContainer;
+    ObjectClassDefinition objectClassDefinition =
+        metatypeProvider.getObjectClassDefinition(null, Locale.getDefault().toString());
+    componentNode.name = objectClassDefinition.getName();
+
     processComponentCapabilities(componentRevision);
     componentNode.requirements =
         processComponentRequirements(componentRevision);
@@ -178,19 +306,39 @@ public class ECMGraphGenerator {
             .getProperty(ECMComponentConstants.SERVICE_PROP_COMPONENT_CONTAINER_SERVICE_ID),
         serviceReference.getProperty(Constants.SERVICE_PID));
 
+    Map<String, String> emptyMap = Collections.emptyMap();
+    capabilityNode.clause = convertServiceReferenceToClause(serviceReference);
+
     capabilityNodes.put(nodeId, capabilityNode);
+    return capabilityNode;
   }
 
   private void processUnsatisfiedRequirement(final ComponentRequirement<?, ?> componentRequirement,
-      final ComponentRequirementDTO result) {
+      final ComponentRequirementDTO componentRequirementDTO) {
 
     Class<?> acceptedCapabilityType = componentRequirement.getAcceptedCapabilityType();
     if (acceptedCapabilityType.equals(BundleCapability.class)) {
-      result.acceptedCapabilityType = CapabilityType.BUNDLE_CAPABILITY;
-      result.satisfactionState = SatisfactionState.UNSATISFIED;
+      componentRequirementDTO.acceptedCapabilityType = CapabilityType.BUNDLE_CAPABILITY;
+      componentRequirementDTO.satisfactionState = SatisfactionState.UNSATISFIED;
     } else if (acceptedCapabilityType.equals(ServiceCapability.class)) {
-      result.acceptedCapabilityType = CapabilityType.SERVICE;
-      // TODO try getting service from bundleContext.getServiceReference();
+      componentRequirementDTO.acceptedCapabilityType = CapabilityType.SERVICE;
+
+      String capabilityNodeId = findGuessedServiceCapability(componentRequirement);
+      if (capabilityNodeId != null) {
+        componentRequirementDTO.capabilityNodeId = capabilityNodeId;
+        componentRequirementDTO.satisfactionState = SatisfactionState.GUESSED;
+      } else {
+        componentRequirementDTO.satisfactionState = SatisfactionState.UNSATISFIED;
+      }
+    }
+  }
+
+  private void processUnsatisfiedRequirements() {
+    Set<Entry<ComponentRequirementDTO, ComponentRequirement<?, ?>>> entrySet =
+        unsatisfiedRequirements.entrySet();
+
+    for (Entry<ComponentRequirementDTO, ComponentRequirement<?, ?>> entry : entrySet) {
+      processUnsatisfiedRequirement(entry.getValue(), entry.getKey());
     }
   }
 

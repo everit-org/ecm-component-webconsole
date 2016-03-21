@@ -38,14 +38,15 @@ public class ECMWebConsoleActivator implements BundleActivator {
   private ServiceRegistration<Servlet> tablePluginSR;
 
   private void registerGraphPlugin(final BundleContext context) {
-    Hashtable<String, String> servletProps = new Hashtable<String, String>();
+    Hashtable<String, Object> servletProps = new Hashtable<String, Object>();
     servletProps.put("felix.webconsole.label", ECMGraphWebConsolePlugin.LABEL);
     servletProps.put("felix.webconsole.category", "Everit");
     servletProps.put("felix.webconsole.title", "ECM Component Graph");
-    servletProps.put("felix.webconsole.css",
-        "/" + ECMGraphWebConsolePlugin.LABEL + "/res/visjs/vis.min.css");
+    servletProps.put("felix.webconsole.css", new String[] {
+        "/" + ECMGraphWebConsolePlugin.LABEL + "/res/visjs/vis.min.css",
+        "/" + ECMGraphWebConsolePlugin.LABEL + "/res/ecm.css" });
 
-    Servlet servlet = new ECMGraphWebConsolePlugin(containerTracker, context);
+    Servlet servlet = new ECMGraphWebConsolePlugin(containerTracker);
     graphPluginSR = context.registerService(Servlet.class, servlet, servletProps);
   }
 

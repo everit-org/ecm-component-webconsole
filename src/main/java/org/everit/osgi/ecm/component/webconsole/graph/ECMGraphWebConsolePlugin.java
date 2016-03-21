@@ -17,6 +17,7 @@ package org.everit.osgi.ecm.component.webconsole.graph;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,13 +35,17 @@ import org.everit.templating.TemplateCompiler;
 import org.everit.templating.html.HTMLTemplateCompiler;
 import org.everit.templating.text.TextTemplateCompiler;
 import org.everit.web.servlet.HttpServlet;
-import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * A webconsole plugin that draws ECM Components as a graph.
  */
 public class ECMGraphWebConsolePlugin extends HttpServlet {
+
+  private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
 
   private static final CompiledTemplate HTML_TEMPLATE;
 
@@ -72,13 +77,9 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
 
   private final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
 
-  private final BundleContext context;
-
   public ECMGraphWebConsolePlugin(
-      final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
-      final BundleContext context) {
+      final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker) {
     this.containerTracker = containerTracker;
-    this.context = context;
   }
 
   /**
@@ -100,8 +101,14 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
     return ECMGraphWebConsolePlugin.class.getClassLoader().getResource(resourcePath);
   }
 
-  private void renderGraphJson(final HttpServletRequest req, final HttpServletResponse resp) {
-    // TODO
+  private void renderGraphJson(final HttpServletResponse resp)
+      throws IOException {
+    resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
+    resp.setContentType("application/json");
+    ECMGraphDTO ecmGraph = ECMGraphGenerator.generate(containerTracker);
+
+    String json = GSON.toJson(ecmGraph);
+    resp.getWriter().write(json);
   }
 
   @Override
@@ -111,7 +118,7 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
     String pathInfo = req.getPathInfo().substring(PLUGIN_ROOT_LENGTH_IN_PATHINFO);
 
     if ("/graph.json".equals(pathInfo)) {
-      renderGraphJson(req, resp);
+      renderGraphJson(resp);
       return;
     }
 
@@ -119,8 +126,6 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
     vars.put("pluginRoot", req.getAttribute("felix.webconsole.pluginRoot"));
 
     HTML_TEMPLATE.render(resp.getWriter(), vars);
-    // TODO Auto-generated method stub
-
   }
 
 }

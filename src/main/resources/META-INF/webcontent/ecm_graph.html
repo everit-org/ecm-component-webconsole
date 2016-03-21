@@ -1,57 +1,217 @@
+<!--
+
+    Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
 <div style="clear: both; margin-top: 2em; border: 1px solid #ccc; border-radius: 5px;">
-<div id="ecmGraph" style="box-sizing: border-box; width: 100%; min-height: 300px; "></div>
+  <div id="ecmGraph" style="box-sizing: border-box; width: 100%; min-height: 300px;" data-eht-render="'none'"></div>
 
-<script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/visjs/vis.min.js'"></script>
-<script type="text/javascript">
-
-// create an array with nodes
-var nodes = new vis.DataSet([
-  {id: 1, label: 'Node 1dfd', shape: 'box', title: 'my title', level : 1},
-  {id: 2, label: 'Node 2asdf\fdfd', shape: 'box', level : 2},
-  {id: 3, label: 'No', shape: 'box', level : 2},
-  {id: 4, label: 'Node 4ffff\nfffffffffffffff', shape: 'box', level : 2},
-  {id: 5, label: 'Node 5', shape: 'box', level : 2}
-]);
-
-// create an array with edges
-var edges = new vis.DataSet([
-  {from: 1, to: 3, label : 'very...', title: 'very long test label'},
-  {from: 1, to: 2},
-  {from: 2, to: 4},
-  {from: 2, to: 5}
-]);
-
-// create a network
-var container = document.getElementById('ecmGraph');
-var data = {
-  nodes: nodes,
-  edges: edges
-};
-var options = {
-    height : '100%',
-    layout : {hierarchical : {enabled : true}}
-};
-var ecmGraphVis = new vis.Network(container, data, options);
-
-function resizeEcmGraphDiv() {
-  var windowHeight = $(window).height();
-  var ecmGraphDivObj = $('#ecmGraph');
-  var topOfEcmGraph = ecmGraphDivObj.offset().top;
-  var ecmGraphDivHeight = windowHeight - topOfEcmGraph - 20;
-  if (ecmGraphDivHeight < 300) {
-    ecmGraphDivHeight = 300;
-  }
-  
-  ecmGraphVis.setSize('100%', ecmGraphDivHeight + 'px');
+  <style id="css">
+body {
+	font: 300 14px 'Helvetica Neue', Helvetica;
 }
 
-$(function() {
-  resizeEcmGraphDiv();
-});
+.node rect {
+	stroke: #333;
+	fill: #fff;
+}
 
-$(window).resize(function() {
-  resizeEcmGraphDiv();
-});
+.node circle {
+  stroke: #333;
+  fill: #fff;
+}
 
-</script>
+.edgePath path {
+	stroke: #333;
+	fill: #333;
+	stroke-width: 1.5px;
+}
+</style>
+
+  <svg width=960 height=600></svg>
+  <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/visjs/vis.min.js'" data-eht-render="'none'"></script>
+  <script type="text/javascript" data-eht-render="'none'">
+      // create an array with nodes
+
+      function convertECMGraphObjToVisJSData(ecmGraph) {
+        var components = ecmGraph.components;
+        var nodeArray = [];
+        var edgeArray = [];
+
+        for (i = 0; i < components.length; i++) {
+          var component = components[i];
+          nodeArray.push({
+            id : component.nodeId,
+            label : 'Component',
+            shape : 'box'
+          });
+
+          var requirements = component.requirements;
+          for (j = 0; j < requirements.length; j++) {
+            var requirement = requirements[j];
+
+            if (requirement.capabilityNodeId) {
+              edgeArray.push({
+                from : component.nodeId,
+                to : requirement.capabilityNodeId,
+                label : requirement.requirementId,
+                title : requirement.clause
+              });
+            } else {
+              // TODO
+            }
+          }
+        }
+
+        var capabilities = ecmGraph.capabilities;
+        for (i = 0; i < capabilities.length; i++) {
+          var capability = capabilities[i];
+
+          nodeArray.push({
+            id : capability.nodeId,
+            label : 'Capability',
+            title : capability.clause,
+            shape : 'dot'
+          });
+          if (capability.componentNodeId) {
+            edgeArray.push({
+              from : capability.nodeId,
+              to : capability.componentNodeId,
+              title : capability.clause
+            });
+          }
+        }
+
+        var data = {
+          nodes : nodeArray,
+          edges : edgeArray
+        };
+        return data;
+      }
+
+      // create a network
+      var container = document.getElementById('ecmGraph');
+
+      var options = {
+        height : '100%',
+        layout : {
+          hierarchical : {
+            enabled : true,
+            direction : 'UD',
+            sortMethod : 'directed'
+          }
+        }
+      };
+
+      var ecmGraphVis = new vis.Network(container, {}, options);
+
+      $.ajax({
+        url : '/system/console/everit_ecm_component_graph/graph.json',
+      }).done(function(data) {
+        var visjsData = convertECMGraphObjToVisJSData(data);
+        alert('visjsDataGenerationDone');
+        ecmGraphVis.setData(visjsData);
+      });
+
+      function resizeEcmGraphDiv() {
+        var windowHeight = $(window).height();
+        var ecmGraphDivObj = $('#ecmGraph');
+        var topOfEcmGraph = ecmGraphDivObj.offset().top;
+        var ecmGraphDivHeight = windowHeight - topOfEcmGraph - 20;
+        if (ecmGraphDivHeight < 300) {
+          ecmGraphDivHeight = 300;
+        }
+
+        ecmGraphVis.setSize('100%', ecmGraphDivHeight + 'px');
+      }
+
+      $(function() {
+        resizeEcmGraphDiv();
+      });
+
+      $(window).resize(function() {
+        resizeEcmGraphDiv();
+      });
+    </script>
+
+  <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/d3.min.js'"></script>
+  <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/dagre-d3.min.js'"></script>
+  <script type="text/javascript">
+      //Create the input graph
+      var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel(
+          function() {
+            return {};
+          });
+
+
+      //Create the renderer
+      var render = new dagreD3.render();
+
+      //Set up an SVG group so that we can translate the final graph.
+      var svg = d3.select("svg"), svgGroup = svg.append("g");
+      
+   // Set up zoom support
+      var zoom = d3.behavior.zoom().on("zoom", function() {
+        svgGroup.attr("transform", "translate(" + d3.event.translate + ")" +
+                                        "scale(" + d3.event.scale + ")");
+          });
+      svg.call(zoom);
+
+      function applyEcmGraphOnDagreG(ecmGraph) {
+        var components = ecmGraph.components;
+
+        for (i = 0; i < components.length; i++) {
+          var component = components[i];
+          g.setNode(component.nodeId, {label : component.name});
+
+          var requirements = component.requirements;
+          for (j = 0; j < requirements.length; j++) {
+            var requirement = requirements[j];
+
+            if (requirement.capabilityNodeId) {
+              g.setEdge(component.nodeId, requirement.capabilityNodeId, {label : requirement.requirementId});
+            } else {
+              // TODO
+            }
+          }
+        }
+
+        var capabilities = ecmGraph.capabilities;
+        for (i = 0; i < capabilities.length; i++) {
+          var capability = capabilities[i];
+          g.setNode(capability.nodeId, {label : 'Capability', shape : 'circle'});
+          if (capability.componentNodeId) {
+            g.setEdge(capability.nodeId, capability.componentNodeId, {arrowhead : 'undirected'});
+          }
+        }
+      }
+
+      $.ajax({
+        url : '/system/console/everit_ecm_component_graph/graph.json',
+      }).done(function(data) {
+        applyEcmGraphOnDagreG(data);
+        //Run the renderer. This is what draws the final graph.
+        render(d3.select("svg g"), g);
+
+     // Center the graph
+        var initialScale = 0.75;
+        zoom
+          .translate([(svg.attr("width") - g.graph().width * initialScale) / 2, 20])
+          .scale(initialScale)
+          .event(svg);
+        svg.attr('height', g.graph().height * initialScale + 40);
+      });
+    </script>
 </div>

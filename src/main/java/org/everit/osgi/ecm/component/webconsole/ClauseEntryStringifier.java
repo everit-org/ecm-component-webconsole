@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.ecm.component.webconsole.graph;
+package org.everit.osgi.ecm.component.webconsole;
 
-public enum SatisfactionState {
+/**
+ * Converter for clause attribute values for their String representation.
+ */
+public interface ClauseEntryStringifier {
 
-  GUESSED, SATISFIED, UNSATISFIED
+  String toString(Clause2StringConverter converter, String key, Object value, String equalExpr);
 }
