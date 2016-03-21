@@ -40,6 +40,10 @@ body {
 .arrowhead {
   fill: #333;
 }
+
+g.componentstate-ACTIVE > circle, g.componentstate-ACTIVE > rect {
+  fill: #D2ED9E;
+}
 </style>
 
   <svg style="width: 100%; height: 500px;"></svg>
@@ -72,14 +76,16 @@ body {
 
         for (i = 0; i < components.length; i++) {
           var component = components[i];
-          g.setNode(component.nodeId, {label : component.name});
+          var additionalClasses = ' componentstate-' + component.state;
+
+          g.setNode(component.nodeId, {label : component.name, rx: 5, ry: 5, class : 'component' + additionalClasses});
 
           var requirements = component.requirements;
           for (j = 0; j < requirements.length; j++) {
             var requirement = requirements[j];
 
             if (requirement.capabilityNodeId) {
-              g.setEdge(component.nodeId, requirement.capabilityNodeId, {label : requirement.requirementId, arrowheadClass: 'arrowhead', lineInterpolate: 'bundle'});
+              g.setEdge(component.nodeId, requirement.capabilityNodeId, {label : requirement.requirementId, arrowheadClass: 'arrowhead', class : 'requirement'});
             } else {
               // TODO
             }
@@ -89,9 +95,15 @@ body {
         var capabilities = ecmGraph.capabilities;
         for (i = 0; i < capabilities.length; i++) {
           var capability = capabilities[i];
-          g.setNode(capability.nodeId, {label : 'Capability', shape : 'circle'});
+          var additionalClasses = '';
+          if (capability.componentState) {
+            additionalClasses = ' componentstate-' + capability.componentState;
+          } else {
+            additionalClasses = ' componentstate-ACTIVE';
+          }
+          g.setNode(capability.nodeId, {label : 'Capability', shape : 'circle', rx: 5, ry: 5, class : 'capability' + additionalClasses});
           if (capability.componentNodeId) {
-            g.setEdge(capability.nodeId, capability.componentNodeId, {arrowhead : 'undirected', arrowheadClass: 'arrowhead', lineInterpolate: 'bundle'});
+            g.setEdge(capability.nodeId, capability.componentNodeId, {arrowhead : 'undirected', arrowheadClass: 'arrowhead', class : 'capability-line'});
           }
         }
       }

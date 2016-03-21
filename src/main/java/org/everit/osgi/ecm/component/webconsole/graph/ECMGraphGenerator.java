@@ -55,7 +55,7 @@ public class ECMGraphGenerator {
   private static class GuessedServiceCapability {
     public String nodeId;
 
-    String objectclass;
+    Set<String> objectclasses;
 
     Map<String, Object> properties;
   }
@@ -109,7 +109,7 @@ public class ECMGraphGenerator {
     while (capabilityNodeId == null && iterator.hasNext()) {
       GuessedServiceCapability guessedServiceCapability = iterator.next();
       Object objectClass = componentRequirement.getAttributes().get(Constants.OBJECTCLASS);
-      if (guessedServiceCapability.objectclass.equals(objectClass)) {
+      if (guessedServiceCapability.objectclasses.contains(objectClass)) {
         String filterString = componentRequirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
         if (filterString == null) {
           capabilityNodeId = guessedServiceCapability.nodeId;
@@ -181,7 +181,8 @@ public class ECMGraphGenerator {
           componentRevision.getComponentContainer().getComponentMetadata();
 
       ServiceMetadata serviceMetadata = componentMetadata.getService();
-      Class<?>[] serviceClasses = serviceMetadata.getClazzes();
+      Class<?>[] serviceClasses =
+          (serviceMetadata != null) ? serviceMetadata.getClazzes() : new Class[0];
 
       int i = 0;
       for (Class<?> serviceClass : serviceClasses) {
