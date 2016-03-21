@@ -43,7 +43,6 @@ public class ECMWebConsoleActivator implements BundleActivator {
     servletProps.put("felix.webconsole.category", "Everit");
     servletProps.put("felix.webconsole.title", "ECM Component Graph");
     servletProps.put("felix.webconsole.css", new String[] {
-        "/" + ECMGraphWebConsolePlugin.LABEL + "/res/visjs/vis.min.css",
         "/" + ECMGraphWebConsolePlugin.LABEL + "/res/ecm.css" });
 
     Servlet servlet = new ECMGraphWebConsolePlugin(containerTracker);

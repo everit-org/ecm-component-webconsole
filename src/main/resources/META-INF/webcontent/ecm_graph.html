@@ -16,7 +16,6 @@
 
 -->
 <div style="clear: both; margin-top: 2em; border: 1px solid #ccc; border-radius: 5px;">
-  <div id="ecmGraph" style="box-sizing: border-box; width: 100%; min-height: 300px;" data-eht-render="'none'"></div>
 
   <style id="css">
 body {
@@ -44,110 +43,6 @@ body {
 </style>
 
   <svg style="width: 100%; height: 500px;"></svg>
-  <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/visjs/vis.min.js'" data-eht-render="'none'"></script>
-  <script type="text/javascript" data-eht-render="'none'">
-      // create an array with nodes
-
-      function convertECMGraphObjToVisJSData(ecmGraph) {
-        var components = ecmGraph.components;
-        var nodeArray = [];
-        var edgeArray = [];
-
-        for (i = 0; i < components.length; i++) {
-          var component = components[i];
-          nodeArray.push({
-            id : component.nodeId,
-            label : 'Component',
-            shape : 'box'
-          });
-
-          var requirements = component.requirements;
-          for (j = 0; j < requirements.length; j++) {
-            var requirement = requirements[j];
-
-            if (requirement.capabilityNodeId) {
-              edgeArray.push({
-                from : component.nodeId,
-                to : requirement.capabilityNodeId,
-                label : requirement.requirementId,
-                title : requirement.clause
-              });
-            } else {
-              // TODO
-            }
-          }
-        }
-
-        var capabilities = ecmGraph.capabilities;
-        for (i = 0; i < capabilities.length; i++) {
-          var capability = capabilities[i];
-
-          nodeArray.push({
-            id : capability.nodeId,
-            label : 'Capability',
-            title : capability.clause,
-            shape : 'dot'
-          });
-          if (capability.componentNodeId) {
-            edgeArray.push({
-              from : capability.nodeId,
-              to : capability.componentNodeId,
-              title : capability.clause
-            });
-          }
-        }
-
-        var data = {
-          nodes : nodeArray,
-          edges : edgeArray
-        };
-        return data;
-      }
-
-      // create a network
-      var container = document.getElementById('ecmGraph');
-
-      var options = {
-        height : '100%',
-        layout : {
-          hierarchical : {
-            enabled : true,
-            direction : 'UD',
-            sortMethod : 'directed'
-          }
-        }
-      };
-
-      var ecmGraphVis = new vis.Network(container, {}, options);
-
-      $.ajax({
-        url : '/system/console/everit_ecm_component_graph/graph.json',
-      }).done(function(data) {
-        var visjsData = convertECMGraphObjToVisJSData(data);
-        alert('visjsDataGenerationDone');
-        ecmGraphVis.setData(visjsData);
-      });
-
-      function resizeEcmGraphDiv() {
-        var windowHeight = $(window).height();
-        var ecmGraphDivObj = $('#ecmGraph');
-        var topOfEcmGraph = ecmGraphDivObj.offset().top;
-        var ecmGraphDivHeight = windowHeight - topOfEcmGraph - 20;
-        if (ecmGraphDivHeight < 300) {
-          ecmGraphDivHeight = 300;
-        }
-
-        ecmGraphVis.setSize('100%', ecmGraphDivHeight + 'px');
-      }
-
-      $(function() {
-        resizeEcmGraphDiv();
-      });
-
-      $(window).resize(function() {
-        resizeEcmGraphDiv();
-      });
-    </script>
 
   <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/d3.min.js'"></script>
   <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/dagre-d3.min.js'"></script>
