@@ -35,12 +35,15 @@ body {
 
 .edgePath path {
 	stroke: #333;
-	fill: #333;
 	stroke-width: 1.5px;
+}
+
+.arrowhead {
+  fill: #333;
 }
 </style>
 
-  <svg width=960 height=600></svg>
+  <svg style="width: 100%; height: 500px;"></svg>
   <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/visjs/vis.min.js'" data-eht-render="'none'"></script>
   <script type="text/javascript" data-eht-render="'none'">
       // create an array with nodes
@@ -181,7 +184,7 @@ body {
             var requirement = requirements[j];
 
             if (requirement.capabilityNodeId) {
-              g.setEdge(component.nodeId, requirement.capabilityNodeId, {label : requirement.requirementId});
+              g.setEdge(component.nodeId, requirement.capabilityNodeId, {label : requirement.requirementId, arrowheadClass: 'arrowhead', lineInterpolate: 'bundle'});
             } else {
               // TODO
             }
@@ -193,25 +196,46 @@ body {
           var capability = capabilities[i];
           g.setNode(capability.nodeId, {label : 'Capability', shape : 'circle'});
           if (capability.componentNodeId) {
-            g.setEdge(capability.nodeId, capability.componentNodeId, {arrowhead : 'undirected'});
+            g.setEdge(capability.nodeId, capability.componentNodeId, {arrowhead : 'undirected', arrowheadClass: 'arrowhead', lineInterpolate: 'bundle'});
           }
         }
       }
+      
+      
+      function resizeEcmGraphSVG() {
+        var windowHeight = $(window).height();
+        var ecmGraphDivObj = $('svg');
+        var topOfEcmGraph = ecmGraphDivObj.offset().top;
+        var ecmGraphDivHeight = windowHeight - topOfEcmGraph - 20;
+        if (ecmGraphDivHeight < 300) {
+          ecmGraphDivHeight = 300;
+        }
 
-      $.ajax({
-        url : '/system/console/everit_ecm_component_graph/graph.json',
-      }).done(function(data) {
-        applyEcmGraphOnDagreG(data);
-        //Run the renderer. This is what draws the final graph.
-        render(d3.select("svg g"), g);
+        ecmGraphDivObj.height(ecmGraphDivHeight + 'px');
+      }
 
-     // Center the graph
-        var initialScale = 0.75;
-        zoom
-          .translate([(svg.attr("width") - g.graph().width * initialScale) / 2, 20])
-          .scale(initialScale)
-          .event(svg);
-        svg.attr('height', g.graph().height * initialScale + 40);
+      $(function() {
+        resizeEcmGraphSVG();
+        
+        $.ajax({
+          url : '/system/console/everit_ecm_component_graph/graph.json',
+        }).done(function(data) {
+          applyEcmGraphOnDagreG(data);
+          //Run the renderer. This is what draws the final graph.
+          render(d3.select("svg g"), g);
+
+       // Center the graph
+          var initialScale = 0.75;
+          zoom
+            .translate([(svg.attr("width") - g.graph().width * initialScale) / 2, 20])
+            .scale(initialScale)
+            .event(svg);
+          svg.attr('height', g.graph().height * initialScale + 40);
+        });
+      });
+
+      $(window).resize(function() {
+        resizeEcmGraphSVG();
       });
     </script>
 </div>

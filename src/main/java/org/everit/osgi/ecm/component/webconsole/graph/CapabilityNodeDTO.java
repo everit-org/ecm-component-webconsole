@@ -15,6 +15,8 @@
  */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
+import org.everit.osgi.ecm.component.resource.ComponentState;
+
 public class CapabilityNodeDTO {
 
   public CapabilityType capabilityType;
@@ -22,6 +24,10 @@ public class CapabilityNodeDTO {
   public String clause;
 
   public String componentNodeId;
+
+  public ComponentState componentState;
+
+  public String namespace;
 
   public String nodeId;
 

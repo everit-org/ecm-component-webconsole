@@ -157,6 +157,7 @@ public class ECMGraphGenerator {
     }
     result = new CapabilityNodeDTO();
     result.capabilityType = CapabilityType.BUNDLE_CAPABILITY;
+    result.namespace = bundleCapability.getNamespace();
     result.nodeId = "bundleCapability." + bundleCapability.getRevision().getBundle().getBundleId()
         + resolveIndexOfBundleCapability(bundleCapability);
     return result;
@@ -164,16 +165,17 @@ public class ECMGraphGenerator {
 
   private void processComponentCapabilities(final ComponentRevision<?> componentRevision) {
 
+    ComponentState componentState = componentRevision.getState();
     List<Capability> capabilities = componentRevision.getCapabilities(null);
     for (Capability capability : capabilities) {
       if (capability instanceof ServiceCapability) {
         ServiceCapability serviceCapability = (ServiceCapability) capability;
         ServiceReference<?> serviceReference = serviceCapability.getServiceReference();
-        processServiceReference(serviceReference);
+        CapabilityNodeDTO capabilityNodeDTO = processServiceReference(serviceReference);
+        capabilityNodeDTO.componentState = componentState;
       }
     }
 
-    ComponentState componentState = componentRevision.getState();
     if (componentState == ComponentState.UNSATISFIED || componentState == ComponentState.FAILED) {
       ComponentMetadata componentMetadata =
           componentRevision.getComponentContainer().getComponentMetadata();
@@ -192,6 +194,7 @@ public class ECMGraphGenerator {
 
         capabilityNode.nodeId = "guessedService." + componentNodeId + "." + (i++);
         capabilityNode.componentNodeId = componentNodeId;
+        capabilityNode.componentState = componentState;
 
         Map<String, Object> attributes = new LinkedHashMap<>();
         String serviceClassName = serviceClass.getCanonicalName();
@@ -301,12 +304,12 @@ public class ECMGraphGenerator {
     capabilityNode = new CapabilityNodeDTO();
     capabilityNode.nodeId = nodeId;
     capabilityNode.capabilityType = CapabilityType.SERVICE;
+    capabilityNode.namespace = "osgi.service";
     capabilityNode.componentNodeId = resolveComponentNodeId(
         serviceReference
             .getProperty(ECMComponentConstants.SERVICE_PROP_COMPONENT_CONTAINER_SERVICE_ID),
         serviceReference.getProperty(Constants.SERVICE_PID));
 
-    Map<String, String> emptyMap = Collections.emptyMap();
     capabilityNode.clause = convertServiceReferenceToClause(serviceReference);
 
     capabilityNodes.put(nodeId, capabilityNode);
