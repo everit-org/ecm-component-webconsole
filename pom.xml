@@ -84,7 +84,6 @@
             <Import-Package>
               javax.servlet.*;version="[2.4,4)",
               org.osgi.service.metatype,
-              org.everit.osgi.ecm.*;version="[1.0,3)",
               *
             </Import-Package>
             <Export-Package />

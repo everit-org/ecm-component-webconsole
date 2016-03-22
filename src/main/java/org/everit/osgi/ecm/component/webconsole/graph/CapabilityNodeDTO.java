@@ -17,6 +17,9 @@ package org.everit.osgi.ecm.component.webconsole.graph;
 
 import org.everit.osgi.ecm.component.resource.ComponentState;
 
+/**
+ * DTO of a capability.
+ */
 public class CapabilityNodeDTO {
 
   public CapabilityType capabilityType;

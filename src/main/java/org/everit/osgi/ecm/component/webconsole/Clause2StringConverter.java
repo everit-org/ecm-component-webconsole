@@ -131,6 +131,13 @@ public class Clause2StringConverter {
     return String.valueOf(object);
   }
 
+  /**
+   * Escapes the special characters of the value of a clause entry with backslashes.
+   *
+   * @param text
+   *          The text that should be escaped.
+   * @return The escaped text.
+   */
   public String escape(final String text) {
     if (text == null) {
       return "";

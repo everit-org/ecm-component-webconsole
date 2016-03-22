@@ -56,6 +56,9 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class ECMWebConsoleServlet implements Servlet {
 
+  /**
+   * Inherited class that modifies some clause entries to become links.
+   */
   private static class CustomClause2StringConverter extends Clause2StringConverter {
 
     @Override
