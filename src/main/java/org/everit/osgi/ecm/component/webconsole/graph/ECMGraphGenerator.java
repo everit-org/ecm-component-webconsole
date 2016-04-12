@@ -28,9 +28,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
 import org.everit.osgi.ecm.component.resource.ComponentRequirement;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
@@ -156,13 +156,17 @@ public class ECMGraphGenerator {
   }
 
   private ECMGraphDTO generate() {
-    ComponentContainer<?>[] componentContainers =
-        containerTracker.getServices(new ComponentContainer[0]);
+    SortedMap<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> trackedContainers =
+        containerTracker.getTracked();
 
-    for (ComponentContainer<?> componentContainer : componentContainers) {
+    for (Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> trackedContainer : trackedContainers // CS_DISABLE_LINE_LENGTH
+        .entrySet()) {
+      ServiceReference<ComponentContainer<?>> serviceReference = trackedContainer.getKey();
+      Object containerServiceId = serviceReference.getProperty(Constants.SERVICE_ID);
+      ComponentContainer<?> componentContainer = trackedContainer.getValue();
       ComponentRevision<?>[] componentRevisions = componentContainer.getResources();
       for (ComponentRevision<?> componentRevision : componentRevisions) {
-        processComponentRevision(componentRevision);
+        processComponentRevision(componentRevision, containerServiceId);
       }
     }
 
@@ -190,7 +194,8 @@ public class ECMGraphGenerator {
     return result;
   }
 
-  private void processComponentCapabilities(final ComponentRevision<?> componentRevision) {
+  private void processComponentCapabilities(final ComponentRevision<?> componentRevision,
+      final Object containerServiceId) {
 
     ComponentState componentState = componentRevision.getState();
     List<Capability> capabilities = componentRevision.getCapabilities(null);
@@ -198,7 +203,8 @@ public class ECMGraphGenerator {
       if (capability instanceof ServiceCapability) {
         ServiceCapability serviceCapability = (ServiceCapability) capability;
         ServiceReference<?> serviceReference = serviceCapability.getServiceReference();
-        CapabilityNodeDTO capabilityNodeDTO = processServiceReference(serviceReference);
+        CapabilityNodeDTO capabilityNodeDTO =
+            processServiceReference(serviceReference, containerServiceId);
         capabilityNodeDTO.componentState = componentState;
       }
     }
@@ -213,9 +219,7 @@ public class ECMGraphGenerator {
 
         CapabilityNodeDTO capabilityNode = new CapabilityNodeDTO();
         Map<String, Object> componentProperties = componentRevision.getProperties();
-        String componentNodeId = resolveComponentNodeId(
-            componentRevision.getProperties()
-                .get(ECMComponentConstants.SERVICE_PROP_COMPONENT_CONTAINER_SERVICE_ID),
+        String componentNodeId = resolveComponentNodeId(containerServiceId,
             componentProperties.get(Constants.SERVICE_PID));
 
         capabilityNode.nodeId = "guessedService." + componentNodeId;
@@ -247,7 +251,7 @@ public class ECMGraphGenerator {
   }
 
   private ComponentRequirementDTO processComponentRequirement(
-      final ComponentRequirement<?, ?> componentRequirement) {
+      final ComponentRequirement<?, ?> componentRequirement, final Object containerServiceId) {
 
     ComponentRequirementDTO result = new ComponentRequirementDTO();
     result.requirementId = componentRequirement.getRequirementId();
@@ -269,7 +273,8 @@ public class ECMGraphGenerator {
         result.acceptedCapabilityType = CapabilityType.SERVICE;
         ServiceCapability serviceCapability = (ServiceCapability) capability;
         result.capabilityNodeId =
-            processServiceReference(serviceCapability.getServiceReference()).nodeId;
+            processServiceReference(serviceCapability.getServiceReference(),
+                containerServiceId).nodeId;
       } else if (capability instanceof BundleCapability) {
         result.acceptedCapabilityType = CapabilityType.BUNDLE_CAPABILITY;
         BundleCapability bundleCapability = (BundleCapability) capability;
@@ -281,20 +286,21 @@ public class ECMGraphGenerator {
   }
 
   private ComponentRequirementDTO[] processComponentRequirements(
-      final ComponentRevision<?> componentRevision) {
+      final ComponentRevision<?> componentRevision, final Object containerServiceId) {
 
     List<ComponentRequirementDTO> result = new ArrayList<>();
     List<Requirement> requirements = componentRevision.getRequirements(null);
     for (Requirement requirement : requirements) {
       if (requirement instanceof ComponentRequirement) {
         ComponentRequirement<?, ?> componentRequirement = (ComponentRequirement<?, ?>) requirement;
-        result.add(processComponentRequirement(componentRequirement));
+        result.add(processComponentRequirement(componentRequirement, containerServiceId));
       }
     }
     return result.toArray(new ComponentRequirementDTO[result.size()]);
   }
 
-  private void processComponentRevision(final ComponentRevision<?> componentRevision) {
+  private void processComponentRevision(final ComponentRevision<?> componentRevision,
+      final Object containerServiceId) {
     ComponentNodeDTO componentNode = new ComponentNodeDTO();
     ComponentContainer<?> componentContainer = componentRevision.getComponentContainer();
 
@@ -304,7 +310,7 @@ public class ECMGraphGenerator {
     Map<String, Object> componentProperties = componentRevision.getProperties();
 
     componentNode.nodeId = resolveComponentNodeId(
-        componentProperties.get(ECMComponentConstants.SERVICE_PROP_COMPONENT_CONTAINER_SERVICE_ID),
+        containerServiceId,
         componentProperties.get(Constants.SERVICE_PID));
 
     componentNode.state = componentRevision.getState();
@@ -315,14 +321,15 @@ public class ECMGraphGenerator {
         metatypeProvider.getObjectClassDefinition(null, Locale.getDefault().toString());
     componentNode.name = objectClassDefinition.getName();
 
-    processComponentCapabilities(componentRevision);
+    processComponentCapabilities(componentRevision, containerServiceId);
     componentNode.requirements =
-        processComponentRequirements(componentRevision);
+        processComponentRequirements(componentRevision, containerServiceId);
 
     componentNodes.add(componentNode);
   }
 
-  private CapabilityNodeDTO processServiceReference(final ServiceReference<?> serviceReference) {
+  private CapabilityNodeDTO processServiceReference(final ServiceReference<?> serviceReference,
+      final Object containerServiceId) {
     Object serviceId = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
     String nodeId = "service." + serviceId;
     CapabilityNodeDTO capabilityNode = capabilityNodes.get(nodeId);
@@ -334,9 +341,7 @@ public class ECMGraphGenerator {
     capabilityNode.nodeId = nodeId;
     capabilityNode.capabilityType = CapabilityType.SERVICE;
     capabilityNode.namespace = "osgi.service";
-    capabilityNode.componentNodeId = resolveComponentNodeId(
-        serviceReference
-            .getProperty(ECMComponentConstants.SERVICE_PROP_COMPONENT_CONTAINER_SERVICE_ID),
+    capabilityNode.componentNodeId = resolveComponentNodeId(containerServiceId,
         serviceReference.getProperty(Constants.SERVICE_PID));
 
     capabilityNode.clause = convertServiceReferenceToClause(serviceReference);
@@ -411,8 +416,8 @@ public class ECMGraphGenerator {
     }
     Set<String> result = new HashSet<>();
     if (service != null) {
-      Class<?>[] clazzes = service.getClazzes();
-      if (clazzes.length == 0) {
+      String[] clazzNames = service.getClazzes();
+      if (clazzNames.length == 0) {
         String componentType = componentMetadata.getType();
         Class<?> componentClass;
         try {
@@ -424,11 +429,11 @@ public class ECMGraphGenerator {
         }
         addImplementedInterfacesToSet(componentClass, result);
       } else {
-        result.addAll(convertClassArrayToStringCollection(clazzes));
+        result.addAll(Arrays.asList(clazzNames));
       }
     }
     if (manualService != null) {
-      result.addAll(convertClassArrayToStringCollection(manualService.getClazzes()));
+      result.addAll(Arrays.asList(manualService.getClazzes()));
     }
     return result;
   }
