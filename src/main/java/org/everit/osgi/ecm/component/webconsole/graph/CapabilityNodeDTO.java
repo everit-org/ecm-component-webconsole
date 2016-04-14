@@ -15,6 +15,8 @@
  */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
+import java.util.Map;
+
 import org.everit.osgi.ecm.component.resource.ComponentState;
 
 /**
@@ -22,13 +24,17 @@ import org.everit.osgi.ecm.component.resource.ComponentState;
  */
 public class CapabilityNodeDTO {
 
-  public CapabilityType capabilityType;
+  public Map<String, Object> attributes;
 
-  public String clause;
+  public CapabilityType capabilityType;
 
   public String componentNodeId;
 
   public ComponentState componentState;
+
+  public Map<String, String> directives;
+
+  public boolean guessed = false;
 
   public String namespace;
 

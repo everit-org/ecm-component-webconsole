@@ -19,7 +19,7 @@ import java.util.Map;
 
 import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
-import org.osgi.resource.Wire;
+import org.osgi.framework.Constants;
 
 /**
  * Utility class for ECM web console.
@@ -32,7 +32,7 @@ public class ECMWebConsoleUtil {
   }
 
   private String getComponentServicePID(final Map<String, Object> attributes) {
-    return (String) attributes.get(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID);
+    return (String) attributes.get(Constants.SERVICE_PID);
   }
 
   private String getEcmId(final Map<String, Object> attributes) {
@@ -56,16 +56,4 @@ public class ECMWebConsoleUtil {
     return getEcmId(revision.getProperties());
   }
 
-  /**
-   * Returns the ECM Id of a component, if it is an ECM component.
-   *
-   * @param wires
-   *          an array of wires. We only use the first one.
-   * @return If the component is a factory created component revision, then the service PID is
-   *         returned. If it is a simple component, it's component Id is returned. If the component
-   *         is not an ECM component, null is returned.
-   */
-  public String getId(final Wire[] wires) {
-    return getEcmId(wires[0].getCapability().getAttributes());
-  }
 }

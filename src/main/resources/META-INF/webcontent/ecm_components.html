@@ -190,7 +190,7 @@ tr > td.lastCapability {
               <li>&nbsp;&nbsp;"Bound" : {
                 <ul class="reqCapList" data-eht-foreach="var iterationKey = ['wire', 'wireIndex'];return {iterationKey : wires}" data-eht-var="{'wiredCapability' : wire.capability}">
                   <li data-eht-render="(isBundleReq)">"Bundle" : "<a data-eht-var="{'bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version}" data-eht-text="bundleId + ' - ' + symbolicName + ':' + version" data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId - symbolicname:version</a>",</li>
-                  <li>"<span data-eht-utext="'Capability&quot; : &quot;' + templateUtil.convertClauseToString(wiredCapability.namespace, wiredCapability.attributes, wiredCapability.directives)"></span>" }</li>
+                  <li>"<span data-eht-text="'Capability&quot; : &quot;' + templateUtil.convertClauseToString(wiredCapability.namespace, wiredCapability.attributes, wiredCapability.directives)"></span>" }</li>
                 </ul>
               </li>
               }
@@ -206,7 +206,7 @@ tr > td.lastCapability {
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
         <td class="aligntop" data-eht-attrappend-class="(capabilityIndex < (capabilities.size() - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size() - 1) ? ' lastCapability' : '')">
           <ul class="reqCapList">
-            <li data-eht-utext="'[ &quot' + templateUtil.convertClauseToString(capability.namespace, capability.attributes, capability.directives) + '&quot ]'">[...]</li>
+            <li data-eht-text="'[ &quot' + templateUtil.convertClauseToString(capability.namespace, capability.attributes, capability.directives) + '&quot ]'">[...]</li>
           </ul>
         </td>
       </tr>

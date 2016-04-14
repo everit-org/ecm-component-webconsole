@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.everit.expression.ExpressionCompiler;
 import org.everit.expression.ParserConfiguration;
 import org.everit.expression.jexl.JexlExpressionCompiler;
-import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.everit.osgi.ecm.component.resource.ComponentContainer;
 import org.everit.osgi.ecm.component.resource.ComponentRevision;
 import org.everit.osgi.ecm.component.resource.ComponentState;
@@ -55,51 +54,6 @@ import org.osgi.util.tracker.ServiceTracker;
  * Webconsole plugin servlet that shows all ECM components and their states.
  */
 public class ECMWebConsoleServlet implements Servlet {
-
-  /**
-   * Inherited class that modifies some clause entries to become links.
-   */
-  private static class CustomClause2StringConverter extends Clause2StringConverter {
-
-    @Override
-    public String convertClauseMapToString(final Map<String, Object> clauseMap,
-        final String equalExpr) {
-      StringBuilder sb = new StringBuilder();
-      Set<Entry<String, Object>> clauseEntrySet = clauseMap.entrySet();
-      boolean first = true;
-      boolean isEcmFactory = clauseMap
-          .containsKey(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID);
-      for (Entry<String, Object> clauseEntry : clauseEntrySet) {
-        if (!first) {
-          sb.append(CLAUSE_SEPARATOR);
-        }
-        if (clauseEntry.getKey().equals(Constants.SERVICE_ID)) {
-          sb.append("<a href=\"services/" + clauseEntry.getValue()
-              + "\" class=\"reqCapLink\">service.id=" + clauseEntry.getValue() + "</a>");
-        } else if (clauseEntry.getKey()
-            .equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID)) {
-          sb.append("<a href=\"#" + clauseEntry.getValue()
-              + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
-              + clauseEntry.getValue() + "');return false;\">"
-              + ECMComponentConstants.SERVICE_PROP_COMPONENT_SERVICE_PID + "="
-              + clauseEntry.getValue() + "</a>");
-        } else if (!isEcmFactory
-            && clauseEntry.getKey().equals(ECMComponentConstants.SERVICE_PROP_COMPONENT_ID)) {
-          sb.append("<a href=\"#" + clauseEntry.getValue()
-              + "\" class=\"reqCapLink\" onclick=\"componentLinkClick(event, '"
-              + clauseEntry.getValue() + "');return false;\">"
-              + ECMComponentConstants.SERVICE_PROP_COMPONENT_ID + "="
-              + clauseEntry.getValue() + "</a>");
-        } else {
-          sb.append(clauseEntry.getKey()).append(equalExpr)
-              .append(escape(convertEntryValueToString(clauseEntry.getValue())));
-        }
-        first = false;
-
-      }
-      return sb.toString();
-    }
-  }
 
   private static final ExceptionFormatter EXCEPTION_FORMATTER = new ExceptionFormatter();
 
@@ -290,7 +244,7 @@ public class ECMWebConsoleServlet implements Servlet {
     vars.put("appRoot", appRoot);
     vars.put("pluginRoot", pluginRoot);
 
-    Clause2StringConverter clauseUtil = new CustomClause2StringConverter();
+    Clause2StringConverter clauseUtil = new Clause2StringConverter();
 
     vars.put("templateUtil", clauseUtil);
     vars.put("exceptionFormatter", EXCEPTION_FORMATTER);
