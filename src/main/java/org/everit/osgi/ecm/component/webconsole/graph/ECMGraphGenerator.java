@@ -172,11 +172,11 @@ public class ECMGraphGenerator {
     for (Entry<ServiceReference<ComponentContainer<?>>, ComponentContainer<?>> trackedContainer : trackedContainers // CS_DISABLE_LINE_LENGTH
         .entrySet()) {
       ServiceReference<ComponentContainer<?>> serviceReference = trackedContainer.getKey();
-      Object containerServiceId = serviceReference.getProperty(Constants.SERVICE_ID);
       ComponentContainer<?> componentContainer = trackedContainer.getValue();
       ComponentRevision<?>[] componentRevisions = componentContainer.getResources();
       for (ComponentRevision<?> componentRevision : componentRevisions) {
-        processComponentRevision(componentRevision, containerServiceId);
+        processComponentRevision(componentRevision,
+            ComponentNodeIdBaseData.createByServiceRef(serviceReference));
       }
     }
 
@@ -205,7 +205,7 @@ public class ECMGraphGenerator {
   }
 
   private void processComponentCapabilities(final ComponentRevision<?> componentRevision,
-      final Object containerServiceId) {
+      final ComponentNodeIdBaseData componentNodeIdBaseData) {
 
     ComponentState componentState = componentRevision.getState();
     List<Capability> capabilities = componentRevision.getCapabilities(null);
@@ -240,7 +240,8 @@ public class ECMGraphGenerator {
           CapabilityNodeDTO capabilityNode = new CapabilityNodeDTO();
           Map<String, Object> componentProperties = componentRevision.getProperties();
           String componentNodeId =
-              resolveComponentNodeId(componentProperties.get(Constants.SERVICE_PID));
+              resolveComponentNodeId(componentNodeIdBaseData,
+                  componentProperties.get(Constants.SERVICE_PID));
 
           capabilityNode.nodeId = "guessedService." + componentNodeId;
           capabilityNode.componentNodeId = componentNodeId;
@@ -273,7 +274,7 @@ public class ECMGraphGenerator {
   }
 
   private ComponentRequirementDTO processComponentRequirement(
-      final ComponentRequirement<?, ?> componentRequirement, final Object containerServiceId) {
+      final ComponentRequirement<?, ?> componentRequirement) {
 
     ComponentRequirementDTO result = new ComponentRequirementDTO();
     result.requirementId = componentRequirement.getRequirementId();
@@ -307,21 +308,21 @@ public class ECMGraphGenerator {
   }
 
   private ComponentRequirementDTO[] processComponentRequirements(
-      final ComponentRevision<?> componentRevision, final Object containerServiceId) {
+      final ComponentRevision<?> componentRevision) {
 
     List<ComponentRequirementDTO> result = new ArrayList<>();
     List<Requirement> requirements = componentRevision.getRequirements(null);
     for (Requirement requirement : requirements) {
       if (requirement instanceof ComponentRequirement) {
         ComponentRequirement<?, ?> componentRequirement = (ComponentRequirement<?, ?>) requirement;
-        result.add(processComponentRequirement(componentRequirement, containerServiceId));
+        result.add(processComponentRequirement(componentRequirement));
       }
     }
     return result.toArray(new ComponentRequirementDTO[result.size()]);
   }
 
   private void processComponentRevision(final ComponentRevision<?> componentRevision,
-      final Object containerServiceId) {
+      final ComponentNodeIdBaseData componentNodeIdBaseData) {
     ComponentNodeDTO componentNode = new ComponentNodeDTO();
     ComponentContainer<?> componentContainer = componentRevision.getComponentContainer();
 
@@ -330,7 +331,8 @@ public class ECMGraphGenerator {
 
     Map<String, Object> componentProperties = componentRevision.getProperties();
 
-    componentNode.nodeId = resolveComponentNodeId(componentProperties.get(Constants.SERVICE_PID));
+    componentNode.nodeId = resolveComponentNodeId(componentNodeIdBaseData,
+        componentProperties.get(Constants.SERVICE_PID));
 
     componentNode.state = componentRevision.getState();
 
@@ -340,9 +342,9 @@ public class ECMGraphGenerator {
         metatypeProvider.getObjectClassDefinition(null, Locale.getDefault().toString());
     componentNode.name = objectClassDefinition.getName();
 
-    processComponentCapabilities(componentRevision, containerServiceId);
+    processComponentCapabilities(componentRevision, componentNodeIdBaseData);
     componentNode.requirements =
-        processComponentRequirements(componentRevision, containerServiceId);
+        processComponentRequirements(componentRevision);
 
     componentNodes.add(componentNode);
   }
@@ -359,8 +361,9 @@ public class ECMGraphGenerator {
     capabilityNode.nodeId = nodeId;
     capabilityNode.capabilityType = CapabilityType.SERVICE;
     capabilityNode.namespace = "osgi.service";
-    capabilityNode.componentNodeId = resolveComponentNodeId(
-        serviceReference.getProperty(Constants.SERVICE_PID));
+    capabilityNode.componentNodeId =
+        resolveComponentNodeId(ComponentNodeIdBaseData.createByServiceRef(serviceReference),
+            serviceReference.getProperty(Constants.SERVICE_PID));
 
     Map<String, Object> attributes = new TreeMap<>();
     String[] propertyKeys = serviceReference.getPropertyKeys();
@@ -403,13 +406,17 @@ public class ECMGraphGenerator {
     }
   }
 
-  private String resolveComponentNodeId(final Object servicePid) {
-    if (componentContainerServiceId == null) {
+  private String resolveComponentNodeId(final ComponentNodeIdBaseData componentNodeIdBaseData,
+      final Object servicePid) {
+    if (componentNodeIdBaseData == null) {
       return null;
     }
-    StringBuilder sb = new StringBuilder("component.").append(componentContainerServiceId);
+    StringBuilder sb =
+        new StringBuilder("component/bundle_").append(componentNodeIdBaseData.bundleId)
+            .append("/").append(componentNodeIdBaseData.componentId).append(':')
+            .append(componentNodeIdBaseData.componentVersion);
     if (servicePid != null) {
-      sb.append('.').append(servicePid);
+      sb.append('/').append(servicePid);
     }
     return sb.toString();
   }

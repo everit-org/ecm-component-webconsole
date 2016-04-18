@@ -15,134 +15,190 @@
     limitations under the License.
 
 -->
-<div style="clear: both; margin-top: 2em; border: 1px solid #ccc; border-radius: 5px;">
+<div>
+  <div style="margin-top: 1em;">
+    <div class="ui-widget-header ui-corner-top buttonGroup">
+      <div class="filterBox">
+        <label>Filter: </label> <input class="filter ui-state-default ui-corner-all" />
+        <button class="filterApply ui-state-default ui-corner-all" title="Apply filter on the graph"
+          style="min-width: 8em; display: inline-block;">Apply Filter</button>
+      </div>
+      <button class="ui-state-default ui-corner-all">Add</button>
+    </div>
+  </div>
+  <div style="clear: both; border: 1px solid #ccc; border-bottom-radius: 5px; border-top: none;">
 
-  <style id="css">
+    <style id="css">
 body {
-	font: 300 14px 'Helvetica Neue', Helvetica;
+    font: 300 14px 'Helvetica Neue', Helvetica;
 }
 
 .node rect {
-	stroke: #333;
-	fill: #fff;
+    stroke: #333;
+    fill: #fff;
 }
 
 .node circle {
-  stroke: #333;
-  fill: #fff;
+    stroke: #333;
+    fill: #fff;
 }
 
 .edgePath path {
-	stroke: #333;
-	stroke-width: 1.5px;
+    stroke: #333;
+    stroke-width: 1.5px;
 }
 
 .arrowhead {
-  fill: #333;
+    fill: #333;
 }
 
-g.componentstate-ACTIVE > circle, g.componentstate-ACTIVE > rect {
-  fill: #D2ED9E;
+g.componentstate-ACTIVE>circle, g.componentstate-ACTIVE>rect {
+    fill: #D2ED9E;
+}
+
+g.componentstate-ACTIVE>circle:hover, g.componentstate-ACTIVE>rect:hover {
+    opacity: 0.3;
+    transition: opacity 0.5s;
 }
 </style>
+    <svg class="ecmGraph" style="width: 100%; height: 500px;"></svg>
 
-  <svg style="width: 100%; height: 500px;"></svg>
+    <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/d3.min.js'"></script>
+    <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/dagre-d3.min.js'"></script>
+    <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/tipsy/javascripts/jquery.tipsy.js'"></script>
+    <script type="text/javascript">
+          //Create the input graph
+          var g = new dagreD3.graphlib.Graph().setGraph({})
+              .setDefaultEdgeLabel(function() {
+                return {};
+              });
 
-  <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/d3.min.js'"></script>
-  <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/dagre/dagre-d3.js'"></script>
-  <script type="text/javascript">
-      //Create the input graph
-      var g = new dagreD3.graphlib.Graph().setGraph({}).setDefaultEdgeLabel(
-          function() {
-            return {};
-          });
+          //Create the renderer
+          var render = new dagreD3.render();
 
+          //Set up an SVG group so that we can translate the final graph.
+          var svg = d3.select(".ecmGraph"), svgGroup = svg.append("g");
 
-      //Create the renderer
-      var render = new dagreD3.render();
+          // Set up zoom support
+          var zoom = d3.behavior.zoom().on(
+              "zoom",
+              function() {
+                svgGroup.attr("transform", "translate(" + d3.event.translate
+                    + ")" + "scale(" + d3.event.scale + ")");
+              });
+          svg.call(zoom);
 
-      //Set up an SVG group so that we can translate the final graph.
-      var svg = d3.select("svg"), svgGroup = svg.append("g");
-      
-   // Set up zoom support
-      var zoom = d3.behavior.zoom().on("zoom", function() {
-        svgGroup.attr("transform", "translate(" + d3.event.translate + ")" +
-                                        "scale(" + d3.event.scale + ")");
-          });
-      svg.call(zoom);
+          function applyEcmGraphOnDagreG(ecmGraph) {
+            var components = ecmGraph.components;
 
-      function applyEcmGraphOnDagreG(ecmGraph) {
-        var components = ecmGraph.components;
+            for (i = 0; i < components.length; i++) {
+              var component = components[i];
+              var additionalClasses = ' componentstate-' + component.state;
 
-        for (i = 0; i < components.length; i++) {
-          var component = components[i];
-          var additionalClasses = ' componentstate-' + component.state;
+              g.setNode(component.nodeId, {
+                label : component.name,
+                rx : 5,
+                ry : 5,
+                class : 'component' + additionalClasses
+              });
 
-          g.setNode(component.nodeId, {label : component.name, rx: 5, ry: 5, class : 'component' + additionalClasses});
+              var requirements = component.requirements;
+              for (j = 0; j < requirements.length; j++) {
+                var requirement = requirements[j];
 
-          var requirements = component.requirements;
-          for (j = 0; j < requirements.length; j++) {
-            var requirement = requirements[j];
+                if (requirement.capabilityNodeId) {
+                  g.setEdge(component.nodeId, requirement.capabilityNodeId, {
+                    label : requirement.requirementId,
+                    arrowheadClass : 'arrowhead',
+                    class : 'requirement'
+                  });
+                } else {
+                  // TODO
+                }
+              }
+            }
 
-            if (requirement.capabilityNodeId) {
-              g.setEdge(component.nodeId, requirement.capabilityNodeId, {label : requirement.requirementId, arrowheadClass: 'arrowhead', class : 'requirement'});
-            } else {
-              // TODO
+            var capabilities = ecmGraph.capabilities;
+            for (i = 0; i < capabilities.length; i++) {
+              var capability = capabilities[i];
+              var additionalClasses = '';
+              if (capability.componentState) {
+                additionalClasses = ' componentstate-'
+                    + capability.componentState;
+              } else {
+                additionalClasses = ' componentstate-ACTIVE';
+              }
+              g.setNode(capability.nodeId, {
+                label : function() { return $('<p>Service</p>')[0];},
+                shape : 'circle',
+                rx : 5,
+                ry : 5,
+                class : 'capability' + additionalClasses
+              });
+              if (capability.componentNodeId) {
+                g.setEdge(capability.nodeId, capability.componentNodeId, {
+                  arrowhead : 'undirected',
+                  arrowheadClass : 'arrowhead',
+                  class : 'capability-line'
+                });
+              }
             }
           }
-        }
 
-        var capabilities = ecmGraph.capabilities;
-        for (i = 0; i < capabilities.length; i++) {
-          var capability = capabilities[i];
-          var additionalClasses = '';
-          if (capability.componentState) {
-            additionalClasses = ' componentstate-' + capability.componentState;
-          } else {
-            additionalClasses = ' componentstate-ACTIVE';
+          function resizeEcmGraphSVG() {
+            var windowHeight = $(window).height();
+            var ecmGraphDivObj = $('svg');
+            var topOfEcmGraph = ecmGraphDivObj.offset().top;
+            var ecmGraphDivHeight = windowHeight - topOfEcmGraph - 20;
+            if (ecmGraphDivHeight < 300) {
+              ecmGraphDivHeight = 300;
+            }
+
+            ecmGraphDivObj.height(ecmGraphDivHeight + 'px');
           }
-          g.setNode(capability.nodeId, {label : 'Capability', shape : 'circle', rx: 5, ry: 5, class : 'capability' + additionalClasses});
-          if (capability.componentNodeId) {
-            g.setEdge(capability.nodeId, capability.componentNodeId, {arrowhead : 'undirected', arrowheadClass: 'arrowhead', class : 'capability-line'});
-          }
-        }
-      }
-      
-      
-      function resizeEcmGraphSVG() {
-        var windowHeight = $(window).height();
-        var ecmGraphDivObj = $('svg');
-        var topOfEcmGraph = ecmGraphDivObj.offset().top;
-        var ecmGraphDivHeight = windowHeight - topOfEcmGraph - 20;
-        if (ecmGraphDivHeight < 300) {
-          ecmGraphDivHeight = 300;
-        }
 
-        ecmGraphDivObj.height(ecmGraphDivHeight + 'px');
-      }
+          $(function() {
+            resizeEcmGraphSVG();
 
-      $(function() {
-        resizeEcmGraphSVG();
-        
-        $.ajax({
-          url : '/system/console/everit_ecm_component_graph/graph.json',
-        }).done(function(data) {
-          applyEcmGraphOnDagreG(data);
-          //Run the renderer. This is what draws the final graph.
-          render(d3.select("svg g"), g);
+            $.ajax({
+              url : '/system/console/everit_ecm_component_graph/graph.json',
+            }).done(
+                function(data) {
+                  applyEcmGraphOnDagreG(data);
+                  //Run the renderer. This is what draws the final graph.
+                  render(d3.select(".ecmGraph g"), g);
 
-       // Center the graph
-          var initialScale = 0.75;
-          zoom
-            .translate([(svg.attr("width") - g.graph().width * initialScale) / 2, 20])
-            .scale(initialScale)
-            .event(svg);
-          svg.attr('height', g.graph().height * initialScale + 40);
-        });
-      });
+                  // Simple function to style the tooltip for the given node.
+                  var styleTooltip = function(name, description) {
+                    return "<p class='name'>" + name
+                        + "</p><p class='description'>" + description + "</p>";
+                  };
 
-      $(window).resize(function() {
-        resizeEcmGraphSVG();
-      });
-    </script>
+                  svgGroup.selectAll("g.node").attr("title", function(v) {
+                    return styleTooltip(v, g.node(v).description)
+                  }).each(function(v) {
+                    $(this).tipsy({
+                      //gravity : "e",
+                      opacity : 0.6,
+                      html : true
+                    });
+                  });
+
+                  // Center the graph
+                  var initialScale = 0.75;
+                  zoom
+                      .translate(
+                          [
+                              (svg.attr("width") - g.graph().width
+                                  * initialScale) / 2, 20 ])
+                      .scale(initialScale).event(svg);
+                  svg.attr('height', g.graph().height * initialScale + 40);
+                });
+          });
+
+          $(window).resize(function() {
+            resizeEcmGraphSVG();
+          });
+        </script>
+  </div>
 </div>
