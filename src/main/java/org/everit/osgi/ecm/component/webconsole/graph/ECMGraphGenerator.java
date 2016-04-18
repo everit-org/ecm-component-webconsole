@@ -216,7 +216,7 @@ public class ECMGraphGenerator {
         ServiceCapability serviceCapability = (ServiceCapability) capability;
         ServiceReference<?> serviceReference = serviceCapability.getServiceReference();
         CapabilityNodeDTO capabilityNodeDTO =
-            processServiceReference(serviceReference, containerServiceId);
+            processServiceReference(serviceReference);
         capabilityNodeDTO.componentState = componentState;
         capabilityNodeDTO.guessed = false;
 
@@ -239,8 +239,8 @@ public class ECMGraphGenerator {
         if (!activeServiceClasses.contains(serviceClasses)) {
           CapabilityNodeDTO capabilityNode = new CapabilityNodeDTO();
           Map<String, Object> componentProperties = componentRevision.getProperties();
-          String componentNodeId = resolveComponentNodeId(containerServiceId,
-              componentProperties.get(Constants.SERVICE_PID));
+          String componentNodeId =
+              resolveComponentNodeId(componentProperties.get(Constants.SERVICE_PID));
 
           capabilityNode.nodeId = "guessedService." + componentNodeId;
           capabilityNode.componentNodeId = componentNodeId;
@@ -295,8 +295,7 @@ public class ECMGraphGenerator {
         result.acceptedCapabilityType = CapabilityType.SERVICE;
         ServiceCapability serviceCapability = (ServiceCapability) capability;
         result.capabilityNodeId =
-            processServiceReference(serviceCapability.getServiceReference(),
-                containerServiceId).nodeId;
+            processServiceReference(serviceCapability.getServiceReference()).nodeId;
       } else if (capability instanceof BundleCapability) {
         result.acceptedCapabilityType = CapabilityType.BUNDLE_CAPABILITY;
         BundleCapability bundleCapability = (BundleCapability) capability;
@@ -331,9 +330,7 @@ public class ECMGraphGenerator {
 
     Map<String, Object> componentProperties = componentRevision.getProperties();
 
-    componentNode.nodeId = resolveComponentNodeId(
-        containerServiceId,
-        componentProperties.get(Constants.SERVICE_PID));
+    componentNode.nodeId = resolveComponentNodeId(componentProperties.get(Constants.SERVICE_PID));
 
     componentNode.state = componentRevision.getState();
 
@@ -362,7 +359,7 @@ public class ECMGraphGenerator {
     capabilityNode.nodeId = nodeId;
     capabilityNode.capabilityType = CapabilityType.SERVICE;
     capabilityNode.namespace = "osgi.service";
-    capabilityNode.componentNodeId = resolveComponentNodeId(containerServiceId,
+    capabilityNode.componentNodeId = resolveComponentNodeId(
         serviceReference.getProperty(Constants.SERVICE_PID));
 
     Map<String, Object> attributes = new TreeMap<>();
@@ -406,8 +403,7 @@ public class ECMGraphGenerator {
     }
   }
 
-  private String resolveComponentNodeId(final Object componentContainerServiceId,
-      final Object servicePid) {
+  private String resolveComponentNodeId(final Object servicePid) {
     if (componentContainerServiceId == null) {
       return null;
     }
