@@ -1,0 +1,41 @@
+body {
+ font: 300 14px 'Helvetica Neue', Helvetica;
+}
+
+.node rect {
+ stroke: #333;
+ fill: #fff;
+}
+
+.node circle {
+ stroke: #333;
+ fill: #fff;
+}
+
+.edgePath path {
+ stroke: #333;
+ stroke-width: 1.5px;
+}
+
+.arrowhead {
+ fill: #333;
+}
+
+g.componentstate-ACTIVE>circle, g.componentstate-ACTIVE>rect {
+ fill: #D2ED9E;
+}
+
+g.componentstate-ACTIVE>circle:hover, g.componentstate-ACTIVE>.label:hover, g.componentstate-ACTIVE>rect:hover
+ {
+ opacity: 0.3;
+ transition: opacity 0.5s;
+}
+
+.node text {
+ pointer-events: none;
+}
+
+
+.hovering {
+ opacity: 0.3;
+}

@@ -44,6 +44,7 @@ public class ECMWebConsoleActivator implements BundleActivator {
     servletProps.put("felix.webconsole.title", "ECM Component Graph");
     servletProps.put("felix.webconsole.css", new String[] {
         "/" + ECMGraphWebConsolePlugin.LABEL + "/res/ecm.css",
+        "/" + ECMGraphWebConsolePlugin.LABEL + "/res/ecm-graph.css",
         "/" + ECMGraphWebConsolePlugin.LABEL + "/res/tipsy/stylesheets/tipsy.css" });
 
     Servlet servlet = new ECMGraphWebConsolePlugin(containerTracker);

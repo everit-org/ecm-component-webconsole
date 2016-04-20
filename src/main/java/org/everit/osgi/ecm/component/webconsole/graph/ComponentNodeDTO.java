@@ -15,12 +15,16 @@
  */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
+import java.util.Map;
+
 import org.everit.osgi.ecm.component.resource.ComponentState;
 import org.everit.osgi.ecm.metadata.ConfigurationPolicy;
 
 public class ComponentNodeDTO {
 
   public String name;
+  
+  public Map<String, Object> properties;
 
   public ConfigurationPolicy configurationPolicy;
 

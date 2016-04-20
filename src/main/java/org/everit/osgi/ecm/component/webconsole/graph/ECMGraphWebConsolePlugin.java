@@ -123,6 +123,7 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
     }
 
     Map<String, Object> vars = new HashMap<>();
+    vars.put("appRoot", req.getAttribute("felix.webconsole.appRoot"));
     vars.put("pluginRoot", req.getAttribute("felix.webconsole.pluginRoot"));
 
     HTML_TEMPLATE.render(resp.getWriter(), vars);

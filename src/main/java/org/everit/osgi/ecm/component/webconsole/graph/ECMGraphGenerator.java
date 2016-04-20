@@ -335,6 +335,7 @@ public class ECMGraphGenerator {
         componentProperties.get(Constants.SERVICE_PID));
 
     componentNode.state = componentRevision.getState();
+    componentNode.properties = componentRevision.getProperties();
 
     // FIXME Locale is hardcoded and metatype provider should be retrieved in a typesafe way.
     MetaTypeProvider metatypeProvider = (MetaTypeProvider) componentContainer;
