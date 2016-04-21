@@ -257,7 +257,7 @@ public class ECMGraphGenerator {
           attributes.putAll(componentProperties);
           Map<String, String> directives = new HashMap<>();
           directives.put(Constants.EFFECTIVE_DIRECTIVE, "guess");
-          capabilityNode.attributes = attributes;
+          capabilityNode.attributes = new AttributeMap(attributes);
           capabilityNode.directives = Collections.emptyMap();
 
           capabilityNode.capabilityType = CapabilityType.SERVICE;
@@ -335,7 +335,7 @@ public class ECMGraphGenerator {
         componentProperties.get(Constants.SERVICE_PID));
 
     componentNode.state = componentRevision.getState();
-    componentNode.properties = componentRevision.getProperties();
+    componentNode.properties = new AttributeMap(componentRevision.getProperties());
 
     // FIXME Locale is hardcoded and metatype provider should be retrieved in a typesafe way.
     MetaTypeProvider metatypeProvider = (MetaTypeProvider) componentContainer;
@@ -371,7 +371,7 @@ public class ECMGraphGenerator {
     for (String propertyKey : propertyKeys) {
       attributes.put(propertyKey, serviceReference.getProperty(propertyKey));
     }
-    capabilityNode.attributes = attributes;
+    capabilityNode.attributes = new AttributeMap(attributes);
     capabilityNode.directives = Collections.emptyMap();
 
     capabilityNodes.put(nodeId, capabilityNode);

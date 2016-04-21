@@ -15,20 +15,21 @@
  */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
-import java.util.Map;
-
 import org.everit.osgi.ecm.component.resource.ComponentState;
 import org.everit.osgi.ecm.metadata.ConfigurationPolicy;
 
+/**
+ * DTO representation of an ECM component.
+ */
 public class ComponentNodeDTO {
-
-  public String name;
-  
-  public Map<String, Object> properties;
 
   public ConfigurationPolicy configurationPolicy;
 
+  public String name;
+
   public String nodeId;
+
+  public AttributeMap properties;
 
   public ComponentRequirementDTO[] requirements;
 

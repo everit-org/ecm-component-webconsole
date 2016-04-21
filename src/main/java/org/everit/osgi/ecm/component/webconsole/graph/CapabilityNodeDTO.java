@@ -24,7 +24,7 @@ import org.everit.osgi.ecm.component.resource.ComponentState;
  */
 public class CapabilityNodeDTO {
 
-  public Map<String, Object> attributes;
+  public AttributeMap attributes;
 
   public CapabilityType capabilityType;
 

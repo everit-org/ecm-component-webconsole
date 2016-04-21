@@ -45,7 +45,8 @@ import com.google.gson.GsonBuilder;
  */
 public class ECMGraphWebConsolePlugin extends HttpServlet {
 
-  private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
+  private static final Gson GSON = new GsonBuilder().disableHtmlEscaping()
+      .registerTypeAdapter(AttributeMap.class, new AttributeMapTypeAdapter()).create();
 
   private static final CompiledTemplate HTML_TEMPLATE;
 
