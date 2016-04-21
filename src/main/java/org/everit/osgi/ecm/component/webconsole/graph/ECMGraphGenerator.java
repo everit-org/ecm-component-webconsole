@@ -342,6 +342,7 @@ public class ECMGraphGenerator {
     ObjectClassDefinition objectClassDefinition =
         metatypeProvider.getObjectClassDefinition(null, Locale.getDefault().toString());
     componentNode.name = objectClassDefinition.getName();
+    componentNode.description = objectClassDefinition.getDescription();
 
     processComponentCapabilities(componentRevision, componentNodeIdBaseData);
     componentNode.requirements =

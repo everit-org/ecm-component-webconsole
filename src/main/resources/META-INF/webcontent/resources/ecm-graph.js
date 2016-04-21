@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function ecmGraph() {
+function EcmGraph() {
   // Create the input graph
   var g = new dagreD3.graphlib.Graph().setGraph({});
   var appRoot = $('div.ecm-graph').attr('data-ecm-appRoot');
+  var gCounter = 0;
+  var ecmEdges = {};
+  
+  var addEdgeToECMEdges = function(edgeUniqueClass, v, w) {
+    var wIdMap = ecmEdges[v];
+    if (!wIdMap) {
+      wIdMap = {};
+      ecmEdges[v] = wIdMap;
+    }
+    wIdMap[w, edgeUniqueClass];
+  }
 
   var resolveCapabilityLabel = function(capability) {
     if (capability.capabilityType == 'SERVICE') {
@@ -34,56 +45,103 @@ function ecmGraph() {
     }
   }
 
+  var htmlEscape = function(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,
+        '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  }
+  
+  var resolveEdgeLabel = function(edgeUniqueClass, labelText) {
+    return $('<p class="' + edgeUniqueClass + '">' + htmlEscape(labelText) + '</p>')[0];
+  }
+
+  
+  var convertMapToHtmlList = function(map) {
+    var result = '<ul style="text-align: left; max-width: 60em; word-wrap: break-word; text-indent: -2em; margin-left: 2em;">';
+    for ( var key in map) {
+      if (map.hasOwnProperty(key)) {
+        result = result + '<li><strong style="font-weight: bold;">'
+            + htmlEscape(key) + ':</strong> ' + htmlEscape(JSON.stringify(map[key]))
+            + '</li>';
+      }
+    }
+    result = result + '</ul>';
+    return result;
+  }
+
   var resolveTooltip = function(node) {
     if (node.capability) {
-      var result = '<ul style="text-align: left;">';
-      var attributes = node.capability.attributes;
-      for ( var key in attributes) {
-        if (attributes.hasOwnProperty(key)) {
-          result = result + '<li><strong style="font-weight: bold;">' + key
-              + ':</strong> ' + attributes[key] + '</li>';
-        }
+      return convertMapToHtmlList(node.capability.attributes);
+    } else if (node.component) {
+      var component = node.component;
+      var label = "<div>";
+      var componentMetaMap = {"Name" : component.name};
+      if (component.description) {
+        componentMetaMap["Description"] = component.description;
       }
-      result = result + '</ul>';
-      return result;
+      label += convertMapToHtmlList(componentMetaMap);
+      label += "<br />";
+      label += convertMapToHtmlList(component.properties);
+      label += "</div>";
+      return label;
     } else {
-      return "<p>TODO</p>";
+      return null;
     }
   }
 
-  var addCapabilityNodeWithEdge = function(capability) {
+  var resolveCapabilityAdditionalClasses = function(capability) {
     var additionalClasses = '';
     if (capability.componentState) {
       additionalClasses = ' componentstate-' + capability.componentState;
     } else {
       additionalClasses = ' componentstate-ACTIVE';
     }
+    if (capability.guessed) {
+      additionalClasses += ' guessed';
+    }
+    return additionalClasses;
+  }
+
+  var resolveShapeByCapabilityType = function(capabilityType) {
+    if (capabilityType == 'SERVICE') {
+      return 'circle';
+    } else {
+      return 'ellipse';
+    }
+  }
+
+  var addCapabilityNodeWithEdge = function(capability) {
+    var additionalClasses = resolveCapabilityAdditionalClasses(capability);
     g.setNode(capability.nodeId, {
       label : resolveCapabilityLabel(capability),
-      shape : 'circle',
+      shape : resolveShapeByCapabilityType(capability.capabilityType),
       rx : 5,
       ry : 5,
       capability : capability,
       class : 'capability' + additionalClasses
     });
     if (capability.componentNodeId) {
+      var edgeUniqueClass = 'ecm-edge-' + (gCounter++);
+      
       g.setEdge(capability.nodeId, capability.componentNodeId, {
+        labelStyle : null,
         arrowhead : 'undirected',
-        arrowheadClass : 'arrowhead',
-        class : 'capability-line'
+        arrowheadClass : 'arrowhead ' + edgeUniqueClass,
+        class : 'capability-line ' + edgeUniqueClass
       });
     }
   }
 
   var applyEcmGraphOnDagreG = function(ecmGraph) {
+    gCounter = 0;
+    ecmEdges = {};
     var components = ecmGraph.components;
 
     for (i = 0; i < components.length; i++) {
       var component = components[i];
       var additionalClasses = ' componentstate-' + component.state;
-
       g.setNode(component.nodeId, {
         label : component.name,
+        component : component,
         rx : 5,
         ry : 5,
         class : 'component' + additionalClasses
@@ -93,11 +151,13 @@ function ecmGraph() {
       for (j = 0; j < requirements.length; j++) {
         var requirement = requirements[j];
 
+        var edgeUniqueClass = 'ecm-edge-' + (gCounter++);
+        addEdgeToECMEdges(edgeUniqueClass, component.nodeId, requirement.capabilityNodeId);
         if (requirement.capabilityNodeId) {
           g.setEdge(component.nodeId, requirement.capabilityNodeId, {
-            label : requirement.requirementId,
+            label : resolveEdgeLabel(edgeUniqueClass, requirement.requirementId),
             arrowheadClass : 'arrowhead',
-            class : 'requirement'
+            class : 'requirement ' + edgeUniqueClass
           });
         } else {
           // TODO
@@ -193,4 +253,4 @@ function ecmGraph() {
   }
 }
 
-var ecmGraphObj = new ecmGraph();
+var ecmGraph = new EcmGraph();

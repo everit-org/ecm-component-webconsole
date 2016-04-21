@@ -25,6 +25,8 @@ public class ComponentNodeDTO {
 
   public ConfigurationPolicy configurationPolicy;
 
+  public String description;
+
   public String name;
 
   public String nodeId;
