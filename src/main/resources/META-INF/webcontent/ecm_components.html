@@ -20,75 +20,104 @@
 <div data-eht-fragment="'content'" data-eht-render="'content'">
   <style>
 #plugin_table .componentState_UNSATISFIED, .componentState_UNSATISFIED {
-  color: darkorange;
+    color: darkorange;
 }
 
 #plugin_table .componentState_FAILED, .componentState_FAILED {
-  color: red;
+    color: red;
 }
 
 #plugin_table .componentState_STARTING, .componentState_STARTING {
-  color: purple;
+    color: purple;
 }
 
 #plugin_table .componentState_STOPPING, .componentState_STOPPING {
-  color: purple;
+    color: purple;
 }
 
 #plugin_table .componentState_INACTIVE, .componentState_INACTIVE {
-  color: darkgray;
+    color: darkgray;
 }
 
 .stacktrace {
-  width: 55vw;
-  overflow: auto;
-  color: red;
+    word-break: break-word;
+    white-space: pre-wrap; /* CSS 3 */
+    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+    white-space: -pre-wrap;
+    /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
+    color: red;
+    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word;
+    white-space: -pre-wrap;
+    /* Opera 4-6 */
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word;
+    white-space: -o-pre-wrap; /* Opera 7 */
+    word-wrap: break-word;
 }
 
 .col_Name {
-  width: 9vw;
+    width: 9vw;
 }
 
 .componentRevisionInfo {
-  color: black;
+    color: black;
 }
 
 .unsatisfiedRequirement {
-  color: red;
+    color: red;
 }
 
 ul.headerConfigButton {
-  float: right;
-  margin-right: 1em;
+    float: right;
+    margin-right: 1em;
 }
 
 a.reqCapLink:link, a.reqCapLink:visited {
-  color: blue;
+    color: blue;
 }
 
 .reqCapList {
-  font-family: monospace;
+    font-family: monospace;
 }
 
-.reqCapList > li {
-  padding-left: 1em;
-  text-indent: -1em;
+.reqCapList>li {
+    padding-left: 1em;
+    text-indent: -1em;
 }
 
 .reqCapList .reqCapList {
-  padding-left: 2em;
+    padding-left: 2em;
 }
 
-tr > td.notFirstCapability {
-  padding-top: 1em;
+tr>td.notFirstCapability {
+    padding-top: 1em;
 }
 
-tr > td.notLastCapability {
-  padding-bottom: 1em;
+tr>td.notLastCapability {
+    padding-bottom: 1em;
 }
 
-tr > td.lastCapability {
-  border-bottom: 0px;
+tr>td.lastCapability {
+    border-bottom: 0px;
+}
+
+table.nicetable tr.details-below td, tr.ui-state-default.details-below {
+    border-bottom: none;
+}
+
+tr.ui-state-default.componentRevisionInfo {
+    border-top: none;
+}
+
+div.componentRevisionInfo {
+    margin-left: 2em;
+    margin-right: 2em;
+    margin-bottom: 1em;
 }
 </style>
   <p class="statline ui-state-highlight">
@@ -107,8 +136,9 @@ tr > td.lastCapability {
   </p>
 
   <table id="plugin_table" class="tablesorter nicetable noauto ui-widget">
-    <tbody data-eht-foreach="var iterationKey = ['ccSR','ccsrIdx'];return {iterationKey : ccMap.keySet()}" data-eht-render="'content'"
-      data-eht-var="{'cc' : ccMap.get(ccSR)}">
+    <tbody
+      data-eht-foreach="var iterationKey = ['ccSR','ccsrIdx'];return {iterationKey : ccMap.keySet()}"
+      data-eht-render="'content'" data-eht-var="{'cc' : ccMap.get(ccSR)}">
       <tr>
         <th class="ui-widget-header" colspan="3"><a
           data-eht-var="{'serviceId' : ccSR.getProperty('service.id')}"
@@ -133,15 +163,18 @@ tr > td.lastCapability {
         <th class="col_Name ui-widget-header header">State</th>
         <th class="col_Name ui-widget-header header">Actions</th>
       </tr>
-      <tr data-eht-render="empty(cc.getResources())" style="border: medium none;"><td style="border: medium none;">&nbsp;</td></tr>
+      <tr data-eht-render="empty(cc.getResources())" style="border: medium none;">
+        <td style="border: medium none;">&nbsp;</td>
+      </tr>
 
-      <tr data-eht-attr-id="consoleUtil.getId(componentRevision)" class="ui-state-default"
+      <tr
         data-eht-foreach="var iterationKey = ['componentRevision', 'crIdx'];return {iterationKey : cc.getResources()}"
-        data-eht-var="{'servicePid' : componentRevision.properties.get('service.pid')}"
+        data-eht-var="{'servicePid' : componentRevision.properties.get('service.pid'), 'componentRevisionRowId' : consoleUtil.getId(componentRevision)}"
+        data-eht-attr-id="componentRevisionRowId" class="ui-state-default"
         data-eht-attrprepend-class="(crIdx % 2 == 0) ? 'odd ' : 'even '"
         data-eht-attrappend-class="' componentState_' + componentRevision.state">
-        <td><div class="ui-icon ui-icon-triangle-1-e subpid"
-            data-eht-attr-onclick="'ecm_components_switchDetailView(this, ' + ccSR.getProperty('service.id') + ', ' + (servicePid != null ? '\'' + servicePid + '\'' : 'null') +')'"
+        <td><div class="ui-icon ui-icon-triangle-1-e subpid details-triangle"
+            data-eht-attr-onclick="'ecm_components_switchDetailView(\'' + componentRevisionRowId + '\', ' + ccSR.getProperty('service.id') + ', ' + (servicePid != null ? '\'' + servicePid + '\'' : 'null') +')'"
             title="Details">&nbsp;</div> <span
           data-eht-text="(servicePid != null) ? servicePid : cc.componentMetadata.componentId">Service
             PID</span></td>
@@ -179,21 +212,40 @@ tr > td.lastCapability {
       isBundleReq = requirement.acceptedCapabilityType.getName() == 'org.osgi.framework.wiring.BundleCapability';">
         <td class="aligntop" style="border: 0px none" data-eht-text="requirement.requirementId">Requirement
           name[0]</td>
-        <td>
+        <td style="word-break: break-word;">
           <div data-eht-attr-class="(requirement.satisfied) ? null : 'unsatisfiedRequirement'"
             data-eht-var="{'wires' : revision.componentContainer.getWiresByRequirement(requirement)}">
             <ul class="reqCapList">
-              <li>{ "Type" : "<span data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement Type</span>",</li>
-              <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span data-eht-text="requirement.namespace">foo</span>",</li>
-              <li>&nbsp;&nbsp;"Directives" : "<span data-eht-text="templateUtil.convertClauseMapToString(requirement.directives, ':=')">filter:=(foo=bar)</span>",</li>
-              <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes" : "<span data-eht-text="templateUtil.convertClauseMapToString(requirement.attributes, '=')">foo=bar</span>",</li>
-              <li>&nbsp;&nbsp;"Bound" : {
-                <ul class="reqCapList" data-eht-foreach="var iterationKey = ['wire', 'wireIndex'];return {iterationKey : wires}" data-eht-var="{'wiredCapability' : wire.capability}">
-                  <li data-eht-render="(isBundleReq)">"Bundle" : "<a data-eht-var="{'bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version}" data-eht-text="bundleId + ' - ' + symbolicName + ':' + version" data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId - symbolicname:version</a>",</li>
-                  <li>"<span data-eht-text="'Capability&quot; : &quot;' + templateUtil.convertClauseToString(wiredCapability.namespace, wiredCapability.attributes, wiredCapability.directives)"></span>" }</li>
-                </ul>
+              <li>{ "Type" : "<span
+                data-eht-text="(isServiceReq) ? 'Service' : ((isBundleReq) ? 'Bundle Capability' : 'Unknown')">Requirement
+                  Type</span>",
               </li>
-              }
+              <li data-eht-render="isBundleReq">&nbsp;&nbsp;"Namespace" : "<span
+                data-eht-text="requirement.namespace">foo</span>",
+              </li>
+              <li>&nbsp;&nbsp;"Directives" : "<span
+                data-eht-text="templateUtil.convertClauseMapToString(requirement.directives, ':=')">filter:=(foo=bar)</span>",
+              </li>
+              <li data-eht-render="requirement.attributes.size() > 0">&nbsp;&nbsp;"Attributes"
+                : "<span
+                data-eht-text="templateUtil.convertClauseMapToString(requirement.attributes, '=')">foo=bar</span>",
+              </li>
+              <li>&nbsp;&nbsp;"Bound" : {
+                <ul class="reqCapList"
+                  data-eht-foreach="var iterationKey = ['wire', 'wireIndex'];return {iterationKey : wires}"
+                  data-eht-var="{'wiredCapability' : wire.capability}">
+                  <li data-eht-render="(isBundleReq)">"Bundle" : "<a
+                    data-eht-var="{'bundleId' : wiredCapability.revision.bundle.bundleId, 'symbolicName' : wiredCapability.revision.symbolicName, 'version' : wiredCapability.revision.version}"
+                    data-eht-text="bundleId + ' - ' + symbolicName + ':' + version"
+                    data-eht-attr-href="appRoot + '/bundles/' + bundleId" class="reqCapLink">bundleId
+                      - symbolicname:version</a>",
+                  </li>
+                  <li>"<span
+                    data-eht-text="'Capability&quot; : &quot;' + templateUtil.convertClauseToString(wiredCapability.namespace, wiredCapability.attributes, wiredCapability.directives)"></span>"
+                    }
+                  </li>
+                </ul>
+              </li> }
             </ul>
           </div>
         </td>
@@ -202,11 +254,14 @@ tr > td.lastCapability {
         <td class="aligntop" nowrap="nowrap" style="border: 0px none; font-weight: bold;"
           colspan="2">Capabilities</td>
       </tr>
-      <tr data-eht-foreach="var iterationKey = ['capability', 'capabilityIndex'];return {iterationKey : capabilities}">
+      <tr
+        data-eht-foreach="var iterationKey = ['capability', 'capabilityIndex'];return {iterationKey : capabilities}">
         <td class="aligntop" style="border: 0px none">&nbsp;</td>
-        <td class="aligntop" data-eht-attrappend-class="(capabilityIndex < (capabilities.size() - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size() - 1) ? ' lastCapability' : '')">
+        <td class="aligntop"
+          data-eht-attrappend-class="(capabilityIndex < (capabilities.size() - 1) ? ' notLastCapability ' : '') + (capabilityIndex > 0 ? ' notFirstCapability ' : '') + (capabilityIndex == (capabilities.size() - 1) ? ' lastCapability' : '')">
           <ul class="reqCapList">
-            <li data-eht-text="'[ &quot' + templateUtil.convertClauseToString(capability.namespace, capability.attributes, capability.directives) + '&quot ]'">[...]</li>
+            <li
+              data-eht-text="'[ &quot' + templateUtil.convertClauseToString(capability.namespace, capability.attributes, capability.directives) + '&quot ]'">[...]</li>
           </ul>
         </td>
       </tr>
@@ -218,7 +273,8 @@ tr > td.lastCapability {
         <td class="aligntop" style="border: 0px none" data-eht-text="propEntry.key">Property
           name</td>
         <td class="aligntop" style="border: 0px none"
-          data-eht-text="templateUtil.convertEntryValueToString(propEntry.value)">Property value</td>
+          data-eht-text="templateUtil.convertEntryValueToString(propEntry.value)">Property
+          value</td>
       </tr>
       <tr data-eht-render="revision.getProcessingThread() != null">
         <td class="aligntop" style="border: 0px none; font-weight: bold;">Processing thread</td>
@@ -237,27 +293,49 @@ tr > td.lastCapability {
   </div>
 
   <script type="text/javascript" data-eht-inline="'text'">
-      function ecm_components_switchDetailView(htmlElement, containerServiceId,
-          servicePid) {
-        var jhe = $(htmlElement);
-        if (jhe.hasClass("ui-icon-triangle-1-e")) {
+      function ecm_components_switchDetailView(componentRevisionRowId,
+          containerServiceId, servicePid) {
+
+        var escapedId = componentRevisionRowId.replace(/(:|\.|\[|\]|,)/g,
+            "\\$1")
+        var componentRevisionRowObj = $('#' + escapedId);
+
+        var triangleElementObj = componentRevisionRowObj
+            .find('.details-triangle');
+
+        if (triangleElementObj.hasClass("ui-icon-triangle-1-e")) {
           var queryURL = "@{pluginRoot}/" + containerServiceId;
           if (servicePid != null) {
             queryURL = queryURL + '/' + servicePid;
           }
           queryURL = queryURL + ".fragment";
-          jQuery.get(queryURL).done(function(data) {
-            jhe.parent().append(data);
-          }).fail(function(data) {
-            alert("Cannot show details. Probably data is out of date.")
-            return false;
-          });
-          jhe.removeClass("ui-icon-triangle-1-e");
-          jhe.addClass("ui-icon-triangle-1-s");
+          jQuery
+              .get(queryURL)
+              .done(
+                  function(data) {
+                    var newRow = $('<tr class="ui-state-default"><td colspan="3"></td></tr>');
+                    newRow.attr('id', componentRevisionRowId + '_details');
+                    var tdObj = newRow.find('td');
+                    tdObj.append(data);
+                    if (componentRevisionRowObj.hasClass('even')) {
+                      newRow.addClass('even');
+                    } else {
+                      newRow.addClass('odd');
+                    }
+                    newRow.addClass('componentRevisionInfo');
+                    componentRevisionRowObj.addClass('details-below');
+                    componentRevisionRowObj.after(newRow);
+                  }).fail(function(data) {
+                alert("Cannot show details. Probably data is out of date.")
+                return false;
+              });
+          triangleElementObj.removeClass("ui-icon-triangle-1-e");
+          triangleElementObj.addClass("ui-icon-triangle-1-s");
         } else {
-          jhe.siblings(".componentRevisionInfo").remove()
-          jhe.removeClass("ui-icon-triangle-1-s");
-          jhe.addClass("ui-icon-triangle-1-e");
+          $('#' + escapedId + "_details").remove()
+          triangleElementObj.removeClass("ui-icon-triangle-1-s");
+          componentRevisionRowObj.removeClass('details-below');
+          triangleElementObj.addClass("ui-icon-triangle-1-e");
         }
       }
 
@@ -268,8 +346,7 @@ tr > td.lastCapability {
           data : 'apply=1&delete=1',
           dataType : 'json',
           async : false
-        })
-        .done(function(){
+        }).done(function() {
           location.reload();
         });
 
@@ -280,21 +357,21 @@ tr > td.lastCapability {
         var selectorParam = "#" + ecmId.replace(/\./g, '\\.')
             + " .ui-icon-triangle-1-e";
         $(selectorParam).click();
-        
+
         $("#" + ecmId.replace(/\./g, '\\.')).fadeOut(10).fadeIn();
       }
-      
+
       function componentLinkClick(event, ecmId) {
         event.preventDefault();
         var linkAnchor = event.target;
         var href = linkAnchor.href;
         componentLinkClickInner(href, ecmId);
       }
-      
+
       $(function() {
         var url = window.location.href;
         var index = url.indexOf("#");
-        if(index > -1) {
+        if (index > -1) {
           var ecmId = url.substring(index + 1);
           componentLinkClickInner(url, ecmId);
         }

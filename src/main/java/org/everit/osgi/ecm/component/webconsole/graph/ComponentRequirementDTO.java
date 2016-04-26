@@ -15,6 +15,9 @@
  */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
+/**
+ * DTO that represents the requirement of an ECM component.
+ */
 public class ComponentRequirementDTO {
 
   public CapabilityType acceptedCapabilityType;

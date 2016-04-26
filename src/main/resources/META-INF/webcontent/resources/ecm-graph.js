@@ -13,20 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 function EcmGraph() {
   // Create the input graph
   var g = new dagreD3.graphlib.Graph().setGraph({});
   var appRoot = $('div.ecm-graph').attr('data-ecm-appRoot');
-  var gCounter = 0;
+  var entityCounter = 0;
   var ecmEdges = {};
-  
-  var addEdgeToECMEdges = function(edgeUniqueClass, v, w) {
+  var nodeIdByUniqueClass = {};
+
+  var createUniqueClassForNode = function(nodeId) {
+    // TODO
+  }
+
+  var createUniqueClassForEdge = function(v, w) {
+    var edgeUniqueClass = 'ecm-edge-' + (entityCounter++);
     var wIdMap = ecmEdges[v];
     if (!wIdMap) {
       wIdMap = {};
       ecmEdges[v] = wIdMap;
     }
     wIdMap[w, edgeUniqueClass];
+    return edgeUniqueClass;
   }
 
   var resolveCapabilityLabel = function(capability) {
@@ -49,19 +57,19 @@ function EcmGraph() {
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,
         '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
   }
-  
+
   var resolveEdgeLabel = function(edgeUniqueClass, labelText) {
-    return $('<p class="' + edgeUniqueClass + '">' + htmlEscape(labelText) + '</p>')[0];
+    return $('<p class="' + edgeUniqueClass + '">' + htmlEscape(labelText)
+        + '</p>')[0];
   }
 
-  
   var convertMapToHtmlList = function(map) {
     var result = '<ul style="text-align: left; max-width: 60em; word-wrap: break-word; text-indent: -2em; margin-left: 2em;">';
     for ( var key in map) {
       if (map.hasOwnProperty(key)) {
         result = result + '<li><strong style="font-weight: bold;">'
-            + htmlEscape(key) + ':</strong> ' + htmlEscape(JSON.stringify(map[key]))
-            + '</li>';
+            + htmlEscape(key) + ':</strong> '
+            + htmlEscape(JSON.stringify(map[key])) + '</li>';
       }
     }
     result = result + '</ul>';
@@ -70,14 +78,28 @@ function EcmGraph() {
 
   var resolveTooltip = function(node) {
     if (node.capability) {
-      return convertMapToHtmlList(node.capability.attributes);
+      if (node.capability.capabilityType == "SERVICE") {
+        return convertMapToHtmlList(node.capability.attributes);
+      } else {
+        var label = "<div>";
+        label += convertMapToHtmlList({
+          namespace : node.capability.namespace
+        });
+        label += "<br />";
+        label += convertMapToHtmlList(node.capability.attributes);
+        label += "</div>";
+        return label;
+      }
     } else if (node.component) {
       var component = node.component;
       var label = "<div>";
-      var componentMetaMap = {"Name" : component.name};
+      var componentMetaMap = {
+        "Name" : component.name
+      };
       if (component.description) {
         componentMetaMap["Description"] = component.description;
       }
+      componentMetaMap["State"] = component.state;
       label += convertMapToHtmlList(componentMetaMap);
       label += "<br />";
       label += convertMapToHtmlList(component.properties);
@@ -120,10 +142,9 @@ function EcmGraph() {
       class : 'capability' + additionalClasses
     });
     if (capability.componentNodeId) {
-      var edgeUniqueClass = 'ecm-edge-' + (gCounter++);
-      
+      var edgeUniqueClass = createUniqueClassForEdge(capability.nodeId,
+          capability.componentNodeId);
       g.setEdge(capability.nodeId, capability.componentNodeId, {
-        labelStyle : null,
         arrowhead : 'undirected',
         arrowheadClass : 'arrowhead ' + edgeUniqueClass,
         class : 'capability-line ' + edgeUniqueClass
@@ -132,7 +153,7 @@ function EcmGraph() {
   }
 
   var applyEcmGraphOnDagreG = function(ecmGraph) {
-    gCounter = 0;
+    entityCounter = 0;
     ecmEdges = {};
     var components = ecmGraph.components;
 
@@ -151,16 +172,39 @@ function EcmGraph() {
       for (j = 0; j < requirements.length; j++) {
         var requirement = requirements[j];
 
-        var edgeUniqueClass = 'ecm-edge-' + (gCounter++);
-        addEdgeToECMEdges(edgeUniqueClass, component.nodeId, requirement.capabilityNodeId);
+        var edgeUniqueClass = createUniqueClassForEdge(component.nodeId,
+            requirement.capabilityNodeId);
+
         if (requirement.capabilityNodeId) {
-          g.setEdge(component.nodeId, requirement.capabilityNodeId, {
-            label : resolveEdgeLabel(edgeUniqueClass, requirement.requirementId),
-            arrowheadClass : 'arrowhead',
-            class : 'requirement ' + edgeUniqueClass
-          });
+          g.setEdge(component.nodeId, requirement.capabilityNodeId,
+              {
+                label : resolveEdgeLabel(edgeUniqueClass,
+                    requirement.requirementId),
+                arrowheadClass : 'arrowhead',
+                class : 'requirement ' + edgeUniqueClass
+              });
         } else {
-          // TODO
+          var missingNodeId = "missing." + component.nodeId + ".j";
+          var capabilityName = (requirement.acceptedCapabilityType == "SERVICE") ? "Service"
+              : "Bundle Capability";
+          g
+              .setNode(
+                  missingNodeId,
+                  {
+                    label : capabilityName,
+                    shape : resolveShapeByCapabilityType(requirement.acceptedCapabilityType),
+                    class : "missing"
+                  });
+
+          var edgeUniqueClass = createUniqueClassForEdge(component.nodeId,
+              missingNodeId);
+          g.setEdge(component.nodeId, missingNodeId,
+              {
+                label : resolveEdgeLabel(edgeUniqueClass,
+                    requirement.requirementId),
+                arrowheadClass : 'arrowhead',
+                class : 'requirement ' + edgeUniqueClass
+              });
         }
       }
     }
@@ -182,6 +226,12 @@ function EcmGraph() {
     }
 
     ecmGraphDivObj.height(ecmGraphDivHeight + 'px');
+  }
+
+  var clearSelection = function() {
+    $('.ecm-hovering').removeClass('hovering');
+    $('.ecm-visible').removeClass('.ecm-visible');
+    $('.ecm-hovered').removeClass('.ecm-hovered');
   }
 
   // Create the renderer

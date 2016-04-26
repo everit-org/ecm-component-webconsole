@@ -14,43 +14,68 @@
  * limitations under the License.
  */
 body {
- font: 300 14px 'Helvetica Neue', Helvetica;
+    font: 300 14px 'Helvetica Neue', Helvetica;
 }
 
-.node rect {
- stroke: #333;
- fill: #fff;
-}
-
-.node circle {
- stroke: #333;
- fill: #fff;
+.node circle, .node ellipse, .node rect {
+    stroke: #333;
 }
 
 .edgePath path {
- stroke: #333;
- stroke-width: 1.5px;
+    stroke: #333;
+    stroke-width: 1.5px;
 }
 
 .arrowhead {
- fill: #333;
+    fill: #333;
 }
 
 g.componentstate-ACTIVE>circle, g.componentstate-ACTIVE>rect {
- fill: #D2ED9E;
+    fill: #D2ED9E;
 }
 
-g.componentstate-ACTIVE>circle:hover, g.componentstate-ACTIVE>.label:hover, g.componentstate-ACTIVE>rect:hover
- {
- opacity: 0.3;
- transition: opacity 0.5s;
+g.componentstate-ACTIVE.guessed>circle, g.componentstate-ACTIVE.guessed>rect {
+    fill: #FCF8E3;
+}
+
+g.componentstate-ACTIVE>circle:hover, g.componentstate-ACTIVE>.label:hover, g.componentstate-ACTIVE>rect:hover {
+    opacity: 0.3;
+    transition: opacity 0.5s;
+}
+
+g.componentstate-FAILED>circle, g.componentstate-FAILED>rect, g.componentstate-FAILED_PERMANENT>circle, g.componentstate_FAILED_PERMANENT>rect
+    {
+    fill: #F2DEDE;
+}
+
+g.componentstate-UNSATISFIED>circle, g.componentstate-UNSATISFIED>rect {
+    fill: #FCF8E3;
+}
+
+g.componentstate-STARTING>rect, g.componentstate-STOPPING>rect {
+    fill: #D9EDF7;
+}
+
+g.componentstate-STARTING>circle, g.componentstate-STOPPING>circle {
+    fill: #FCF8E3;
+}
+
+g.componentstate-STARTING.guessed>circle, g.componentstate-STOPPING.guessed>circle {
+    fill: #FCF8E3;
+}
+
+g>ellipse {
+  fill: #D2ED9E;
+}
+
+g.node.missing>ellipse, g.node.missing>circle {
+  fill: #FFFFFF;
 }
 
 .node text {
- pointer-events: none;
+    pointer-events: none;
 }
 
-
 .hovering {
- opacity: 0.3;
+    opacity: 0.3;
 }

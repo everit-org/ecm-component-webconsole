@@ -15,6 +15,9 @@
  */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
+/**
+ * The satisfaction state of an ECM Component requirement.
+ */
 public enum SatisfactionState {
 
   GUESSED, SATISFIED, UNSATISFIED

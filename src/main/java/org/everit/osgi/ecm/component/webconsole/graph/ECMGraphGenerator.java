@@ -197,10 +197,14 @@ public class ECMGraphGenerator {
       return result;
     }
     result = new CapabilityNodeDTO();
-    result.capabilityType = CapabilityType.BUNDLE_CAPABILITY;
-    result.namespace = bundleCapability.getNamespace();
     result.nodeId = "bundleCapability." + bundleCapability.getRevision().getBundle().getBundleId()
         + resolveIndexOfBundleCapability(bundleCapability);
+    result.capabilityType = CapabilityType.BUNDLE_CAPABILITY;
+    result.namespace = bundleCapability.getNamespace();
+    result.attributes = new AttributeMap(bundleCapability.getAttributes());
+    result.directives = Collections.emptyMap();
+
+    capabilityNodes.put(result.nodeId, result);
     return result;
   }
 
