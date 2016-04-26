@@ -203,6 +203,7 @@ public class ECMGraphGenerator {
     result.namespace = bundleCapability.getNamespace();
     result.attributes = new AttributeMap(bundleCapability.getAttributes());
     result.directives = Collections.emptyMap();
+    result.bundleId = bundleCapability.getRevision().getBundle().getBundleId();
 
     capabilityNodes.put(result.nodeId, result);
     return result;

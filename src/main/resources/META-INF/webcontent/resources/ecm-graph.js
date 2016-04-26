@@ -49,7 +49,9 @@ function EcmGraph() {
       }
       return $(label)[0];
     } else {
-      return $('<p>Bundle Capability</p>')[0];
+      return $('<div style="text-align: center;">Bundle Capability<br /><a href="' + appRoot
+          + '/bundles/' + capability.bundleId + '">' + capability.bundleId
+          + '</a></div>')[0];
     }
   }
 

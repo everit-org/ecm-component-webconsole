@@ -26,6 +26,8 @@ public class CapabilityNodeDTO {
 
   public AttributeMap attributes;
 
+  public Long bundleId;
+
   public CapabilityType capabilityType;
 
   public String componentNodeId;
