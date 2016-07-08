@@ -53,8 +53,14 @@ import org.osgi.service.metatype.MetaTypeProvider;
 import org.osgi.service.metatype.ObjectClassDefinition;
 import org.osgi.util.tracker.ServiceTracker;
 
-public class ECMGraphGenerator {
+/**
+ * Generates an ECM Graph that can be rendered.
+ */
+public final class ECMGraphGenerator {
 
+  /**
+   * A service capability that is not wired, but it would be if the component was active.
+   */
   private static class GuessedServiceCapability {
     public String nodeId;
 
@@ -63,6 +69,13 @@ public class ECMGraphGenerator {
     Map<String, Object> properties;
   }
 
+  /**
+   * Generates the ECM graph.
+   *
+   * @param containerTracker
+   *          Tracks the {@link ComponentContainer}s.
+   * @return The graph.
+   */
   public static ECMGraphDTO generate(
       final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker) {
 
@@ -263,7 +276,7 @@ public class ECMGraphGenerator {
           Map<String, String> directives = new HashMap<>();
           directives.put(Constants.EFFECTIVE_DIRECTIVE, "guess");
           capabilityNode.attributes = new AttributeMap(attributes);
-          capabilityNode.directives = Collections.emptyMap();
+          capabilityNode.directives = directives;
 
           capabilityNode.capabilityType = CapabilityType.SERVICE;
           capabilityNodes.put(capabilityNode.nodeId, capabilityNode);

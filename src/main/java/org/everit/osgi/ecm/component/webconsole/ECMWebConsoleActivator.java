@@ -41,7 +41,7 @@ public class ECMWebConsoleActivator implements BundleActivator {
     Hashtable<String, Object> servletProps = new Hashtable<String, Object>();
     servletProps.put("felix.webconsole.label", ECMGraphWebConsolePlugin.LABEL);
     servletProps.put("felix.webconsole.category", "Everit");
-    servletProps.put("felix.webconsole.title", "ECM Component Graph");
+    servletProps.put("felix.webconsole.title", "ECM Component Graph (alpha)");
     servletProps.put("felix.webconsole.css", new String[] {
         "/" + ECMGraphWebConsolePlugin.LABEL + "/res/ecm.css",
         "/" + ECMGraphWebConsolePlugin.LABEL + "/res/ecm-graph.css",

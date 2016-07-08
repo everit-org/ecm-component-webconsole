@@ -19,8 +19,18 @@ import org.everit.osgi.ecm.component.ECMComponentConstants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 
+/**
+ * Helper class to store the id of a component node during graph generation.
+ */
 public class ComponentNodeIdBaseData {
 
+  /**
+   * Create a {@link ComponentNodeIdBaseData} based on a {@link ServiceReference}.
+   *
+   * @param serviceReference
+   *          The service reference.
+   * @return the {@link ComponentNodeIdBaseData} instance.
+   */
   public static ComponentNodeIdBaseData createByServiceRef(
       final ServiceReference<?> serviceReference) {
 
@@ -45,6 +55,16 @@ public class ComponentNodeIdBaseData {
 
   public final Version componentVersion;
 
+  /**
+   * Constructor.
+   *
+   * @param componentId
+   *          The id of the component.
+   * @param componentVersion
+   *          The version of the component.
+   * @param bundleId
+   *          The id of the bundle that hosts the component.
+   */
   public ComponentNodeIdBaseData(final String componentId, final Version componentVersion,
       final long bundleId) {
     this.componentId = componentId;

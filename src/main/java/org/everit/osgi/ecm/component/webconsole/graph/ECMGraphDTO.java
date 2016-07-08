@@ -15,6 +15,9 @@
  */
 package org.everit.osgi.ecm.component.webconsole.graph;
 
+/**
+ * The entry class of the graph dto that is passed to the client.
+ */
 public class ECMGraphDTO {
 
   public CapabilityNodeDTO[] capabilities;
