@@ -15,15 +15,24 @@
  */
 
 function EcmGraph() {
+  const nodeClassRegex=/ecm-node-[^\s ]*/i;
+  const NODE_CLASS_PREFIX="ecm-node-";
+  const EDGE_CLASS_PREFIX="ecm-edge-id";
   // Create the input graph
   var g = new dagreD3.graphlib.Graph().setGraph({});
   var appRoot = $('div.ecm-graph').attr('data-ecm-appRoot');
   var entityCounter = 0;
+  var nodeCounter = 0;
   var ecmEdges = {};
+  var ecmNodes = {};
   var nodeIdByUniqueClass = {};
+  var graph=new Graph();
 
-  var createUniqueClassForNode = function(nodeId) {
-    // TODO
+  var createOrGetUniqueClassForNode = function(nodeId) {
+    if (!(nodeId in ecmNodes)){ 
+	  ecmNodes[nodeId]=NODE_CLASS_PREFIX + (++nodeCounter);
+	}
+    return ecmNodes[nodeId];
   }
 
   var createUniqueClassForEdge = function(v, w) {
@@ -135,39 +144,43 @@ function EcmGraph() {
 
   var addCapabilityNodeWithEdge = function(capability) {
     var additionalClasses = resolveCapabilityAdditionalClasses(capability);
+    graph.addNewNode(createOrGetUniqueClassForNode(capability.nodeId));
     g.setNode(capability.nodeId, {
       label : resolveCapabilityLabel(capability),
       shape : resolveShapeByCapabilityType(capability.capabilityType),
       rx : 5,
       ry : 5,
       capability : capability,
-      class : 'capability' + additionalClasses
+      class : 'capability' + additionalClasses + ' '+ createOrGetUniqueClassForNode(capability.nodeId)
     });
     if (capability.componentNodeId) {
       var edgeUniqueClass = createUniqueClassForEdge(capability.nodeId,
           capability.componentNodeId);
+      addNodeConnectionToGraph(capability.nodeId, capability.componentNodeId);
       g.setEdge(capability.nodeId, capability.componentNodeId, {
         arrowhead : 'undirected',
         arrowheadClass : 'arrowhead ' + edgeUniqueClass,
-        class : 'capability-line ' + edgeUniqueClass
+        class : 'capability-line ' + edgeUniqueClass + getEdgeClass(capability.nodeId,capability.componentNodeId)
       });
     }
   }
 
   var applyEcmGraphOnDagreG = function(ecmGraph) {
     entityCounter = 0;
+    nodeCounter = 0; 
     ecmEdges = {};
     var components = ecmGraph.components;
 
     for (i = 0; i < components.length; i++) {
       var component = components[i];
       var additionalClasses = ' componentstate-' + component.state;
+      graph.addNewNode(createOrGetUniqueClassForNode(component.nodeId));
       g.setNode(component.nodeId, {
         label : component.name,
         component : component,
         rx : 5,
         ry : 5,
-        class : 'component' + additionalClasses
+        class : 'component' + additionalClasses + ' '+ createOrGetUniqueClassForNode(component.nodeId)
       });
 
       var requirements = component.requirements;
@@ -178,12 +191,13 @@ function EcmGraph() {
             requirement.capabilityNodeId);
 
         if (requirement.capabilityNodeId) {
+          addNodeConnectionToGraph(component.nodeId, requirement.capabilityNodeId);
           g.setEdge(component.nodeId, requirement.capabilityNodeId,
               {
                 label : resolveEdgeLabel(edgeUniqueClass,
                     requirement.requirementId),
                 arrowheadClass : 'arrowhead',
-                class : 'requirement ' + edgeUniqueClass
+                class : 'requirement ' + edgeUniqueClass + getEdgeClass(component.nodeId,requirement.capabilityNodeId)
               });
         } else {
           var missingNodeId = "missing." + component.nodeId + ".j";
@@ -195,17 +209,18 @@ function EcmGraph() {
                   {
                     label : capabilityName,
                     shape : resolveShapeByCapabilityType(requirement.acceptedCapabilityType),
-                    class : "missing"
+                    class : "missing" + ' ' + createOrGetUniqueClassForNode(missingNodeId)
                   });
 
           var edgeUniqueClass = createUniqueClassForEdge(component.nodeId,
               missingNodeId);
+          addNodeConnectionToGraph(component.nodeId, missingNodeId);
           g.setEdge(component.nodeId, missingNodeId,
               {
                 label : resolveEdgeLabel(edgeUniqueClass,
                     requirement.requirementId),
                 arrowheadClass : 'arrowhead',
-                class : 'requirement ' + edgeUniqueClass
+                class : 'requirement ' + edgeUniqueClass + getEdgeClass(component.nodeId,missingNodeId)
               });
         }
       }
@@ -254,6 +269,7 @@ function EcmGraph() {
 
   var renderECMGraph = function(data, callRender) {
     g = new dagreD3.graphlib.Graph().setGraph({});
+    graph = new Graph();
     applyEcmGraphOnDagreG(data);
 
     g.graph().transition = function(selection) {
@@ -271,8 +287,46 @@ function EcmGraph() {
         html : true
       });
     });
+    $( "circle, rect, ellipse" ).parent()
+      .mouseenter(onMouseOverHandler)
+      .mouseleave(onMouseLeaveHandler);
   }
-
+   var getEdgeClass= function (fromNodeId,toNodeId){
+   return ' '+ EDGE_CLASS_PREFIX + createOrGetUniqueClassForNode(fromNodeId)
+    + '-' + createOrGetUniqueClassForNode(toNodeId);
+  }
+  var findNodeParentsAndChildren = function(nodeId){
+    var path = graph.getBloodPath(nodeId);
+	for (var n in path){
+	  var nodeIdSelector="." + n;
+	  var oldClass = $(nodeIdSelector).attr("class");
+	  $(nodeIdSelector).attr("class", oldClass + " blood");
+	}
+	var pathEdges = graph.getBloodPathEdges(nodeId);
+	for (var edge of pathEdges){
+	  var edgeSelector="." + EDGE_CLASS_PREFIX + edge.parent + '-' +edge.child;
+	  var oldClass = $(edgeSelector).attr("class");
+	  $(edgeSelector).attr("class", oldClass + " blood");
+	}
+  }
+  var addNodeConnectionToGraph = function (parentNode, childNode){
+    graph.addNodeConnection(createOrGetUniqueClassForNode(parentNode)
+	      ,createOrGetUniqueClassForNode(childNode));
+  }
+  var onMouseOverHandler= function(){
+    var nodeClass=nodeClassRegex.exec($(this).attr('class'))[0];
+	findNodeParentsAndChildren(nodeClass);
+	$( "circle, rect, ellipse, path" ).parent().not("." + nodeClass).each(function(i, obj) {
+	  var oldClass =  $(obj).attr("class");
+	  $(obj).attr("class", oldClass + " hovered");
+	});
+  }
+  var onMouseLeaveHandler= function(){
+    $(".blood, .hovered").each(function(i, obj) {
+	  var oldClass =  $(obj).attr("class");
+	  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", ""));
+	});
+  }
   $(function() {
     resizeEcmGraphSVG();
 
