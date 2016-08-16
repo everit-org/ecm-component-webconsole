@@ -79,3 +79,16 @@ g.node.missing>ellipse, g.node.missing>circle {
 .hovering {
     opacity: 0.3;
 }
+
+.node.blood.hovered circle, .node.blood.hovered rect, .node.blood.hovered ellipse{
+  fill: lightblue;
+}
+.node.hovered circle, .node.hovered rect, .node.hovered ellipse{
+  fill: gray;
+}
+.edgePath.hovered.blood path {
+  stroke: black;
+}
+.edgePath.hovered path {
+  stroke: gray;
+}
