@@ -81,14 +81,21 @@ g.node.missing>ellipse, g.node.missing>circle {
 }
 
 .node.blood.hovered circle, .node.blood.hovered rect, .node.blood.hovered ellipse{
-  fill: lightblue;
+  opacity: 1;
 }
 .node.hovered circle, .node.hovered rect, .node.hovered ellipse{
-  fill: gray;
+  opacity: 0.2;
 }
 .edgePath.hovered.blood path {
   stroke: black;
+  opacity: 1;
 }
 .edgePath.hovered path {
-  stroke: gray;
+  opacity: 0.2;
+}
+.edgeLabel.hovered.blood{
+	 opacity: 1;
+}
+.edgeLabel.hovered{
+	 opacity: 0.2;
 }

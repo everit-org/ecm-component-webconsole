@@ -69,8 +69,8 @@ function EcmGraph() {
         '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
   }
 
-  var resolveEdgeLabel = function(edgeUniqueClass, labelText) {
-    return $('<p class="' + edgeUniqueClass + '">' + htmlEscape(labelText)
+  var resolveEdgeLabel = function(edgeUniqueClass, labelText, edgeIdclass) {
+    return $('<p class="' + edgeUniqueClass + edgeIdclass +'">' + htmlEscape(labelText)
         + '</p>')[0];
   }
 
@@ -192,12 +192,13 @@ function EcmGraph() {
 
         if (requirement.capabilityNodeId) {
           addNodeConnectionToGraph(component.nodeId, requirement.capabilityNodeId);
+          var edgeIdClass= getEdgeClass(component.nodeId,requirement.capabilityNodeId);
           g.setEdge(component.nodeId, requirement.capabilityNodeId,
               {
                 label : resolveEdgeLabel(edgeUniqueClass,
-                    requirement.requirementId),
+                    requirement.requirementId,edgeIdClass),
                 arrowheadClass : 'arrowhead',
-                class : 'requirement ' + edgeUniqueClass + getEdgeClass(component.nodeId,requirement.capabilityNodeId)
+                class : 'requirement ' + edgeUniqueClass + edgeIdClass
               });
         } else {
           var missingNodeId = "missing." + component.nodeId + ".j";
@@ -215,12 +216,13 @@ function EcmGraph() {
           var edgeUniqueClass = createUniqueClassForEdge(component.nodeId,
               missingNodeId);
           addNodeConnectionToGraph(component.nodeId, missingNodeId);
+          var edgeIdClass= getEdgeClass(component.nodeId,missingNodeId);
           g.setEdge(component.nodeId, missingNodeId,
               {
                 label : resolveEdgeLabel(edgeUniqueClass,
-                    requirement.requirementId),
+                    requirement.requirementId, edgeIdClass),
                 arrowheadClass : 'arrowhead',
-                class : 'requirement ' + edgeUniqueClass + getEdgeClass(component.nodeId,missingNodeId)
+                class : 'requirement ' + edgeUniqueClass + edgeIdClass
               });
         }
       }
@@ -290,6 +292,7 @@ function EcmGraph() {
     $( "circle, rect, ellipse" ).parent()
       .mouseenter(onMouseOverHandler)
       .mouseleave(onMouseLeaveHandler);
+    $("p[class*='ecm-edge-']").parentsUntil('.edgeLabel','g').parent().css("opacity", "");
   }
    var getEdgeClass= function (fromNodeId,toNodeId){
    return ' '+ EDGE_CLASS_PREFIX + createOrGetUniqueClassForNode(fromNodeId)
@@ -305,8 +308,15 @@ function EcmGraph() {
 	var pathEdges = graph.getBloodPathEdges(nodeId);
 	for (var edge of pathEdges){
 	  var edgeSelector="." + EDGE_CLASS_PREFIX + edge.parent + '-' +edge.child;
-	  var oldClass = $(edgeSelector).attr("class");
-	  $(edgeSelector).attr("class", oldClass + " blood");
+	  $(".edgePath"+edgeSelector).each(function(i, obj){
+		  var oldClass = $(obj).attr("class");
+		  $(obj).attr("class", oldClass + " blood");
+	  });
+	  $( "p[class*='"+EDGE_CLASS_PREFIX + edge.parent + '-' +edge.child+"']")
+	     .parentsUntil('.edgeLabel','g').parent().each(function(i, obj) {
+			   var oldClass =  $(obj).attr("class");
+			   $(obj).attr("class", oldClass + " blood");
+	  }); 
 	}
   }
   var addNodeConnectionToGraph = function (parentNode, childNode){
@@ -316,10 +326,14 @@ function EcmGraph() {
   var onMouseOverHandler= function(){
     var nodeClass=nodeClassRegex.exec($(this).attr('class'))[0];
 	findNodeParentsAndChildren(nodeClass);
-	$( "circle, rect, ellipse, path" ).parent().not("." + nodeClass).each(function(i, obj) {
+	$( "circle, rect, ellipse, path").parent().not("." + nodeClass).each(function(i, obj) {
 	  var oldClass =  $(obj).attr("class");
 	  $(obj).attr("class", oldClass + " hovered");
 	});
+	$( "p[class*='ecm-edge-']").parentsUntil('.edgeLabel','g').parent().each(function(i, obj) {
+	   var oldClass =  $(obj).attr("class");
+	   $(obj).attr("class", oldClass + " hovered");
+	}); 
   }
   var onMouseLeaveHandler= function(){
     $(".blood, .hovered").each(function(i, obj) {
