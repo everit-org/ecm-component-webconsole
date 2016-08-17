@@ -63,7 +63,19 @@ function EcmGraph() {
           + '</a></div>')[0];
     }
   }
-
+  var resolveComponenetLabel=function(component){
+	  var result='<div style="text-align: center;">'+ component.name +  '<br />';
+	  if(component.configurationPolicy != "IGNORE"){
+		  result=result + '<a href="'+appRoot+"/configMgr/"+component.properties["service.pid"]
+		  +"?referer="+window.location.pathname+ window.location.search+ window.location.hash
+		  +'">Edit</a> ';
+	  	}
+	  if(component.properties && Object.getOwnPropertyNames(component.properties).length > 0){
+	    result=result +  '<a href="javascript:deleteConfig(' +"'" +component.properties["service.pid"]
+	      +"'" +')"'+'>Delete</a></div>';
+	  }
+	  return $(result)[0];
+  }
   var htmlEscape = function(text) {
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,
         '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
@@ -176,7 +188,7 @@ function EcmGraph() {
       var additionalClasses = ' componentstate-' + component.state;
       graph.addNewNode(createOrGetUniqueClassForNode(component.nodeId));
       g.setNode(component.nodeId, {
-        label : component.name,
+        label : resolveComponenetLabel(component),
         component : component,
         rx : 5,
         ry : 5,
