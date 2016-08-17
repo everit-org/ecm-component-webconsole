@@ -88,6 +88,10 @@
  assert.equal(graph.getBloodPathEdges("node1").length,4);
  assert.deepEqual(graph.getBloodPathEdges("node1"),[{parent : "node1", child:"node2"}, {parent : "node2", child:"node3"}, {parent : "node1", child:"node4"},{parent : "node4", child:"node2"},]);
  assert.deepEqual(graph.getBloodPathEdges("node2"),[{parent : "node2", child:"node3"}, {parent : "node1", child:"node2"},{parent : "node4", child:"node2"},{parent : "node1", child:"node4"}, {parent : "node5", child:"node4"}]);
+ assert.equal( graph.getClosestNeighbours("node1").nearNodes.length, 2);
+ assert.deepEqual(graph.getClosestNeighbours("node4").nearNodes,[ "node2","node1", "node5"]);
+ assert.deepEqual(graph.getClosestNeighbours("node4").nearEdges,[ {parent : "node4", child:"node2"}, {parent : "node1", child:"node4"},{parent : "node5", child:"node4"}]);
+ 
  });
 
 </script>

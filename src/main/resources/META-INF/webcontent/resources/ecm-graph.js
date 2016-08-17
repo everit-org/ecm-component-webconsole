@@ -310,25 +310,40 @@ function EcmGraph() {
    return ' '+ EDGE_CLASS_PREFIX + createOrGetUniqueClassForNode(fromNodeId)
     + '-' + createOrGetUniqueClassForNode(toNodeId);
   }
-  var findNodeParentsAndChildren = function(nodeId){
-    var path = graph.getBloodPath(nodeId);
-	for (var n in path){
+  var addClassForNoeds=function(path, cssClass){
+    for (var n in path){
 	  var nodeIdSelector="." + n;
 	  var oldClass = $(nodeIdSelector).attr("class");
-	  $(nodeIdSelector).attr("class", oldClass + " blood");
+	  $(nodeIdSelector).attr("class", oldClass + " "+cssClass);
 	}
-	var pathEdges = graph.getBloodPathEdges(nodeId);
-	for (var edge of pathEdges){
+  }
+  var addClassForEdge=function(edge, cssClass){
 	  var edgeSelector="." + EDGE_CLASS_PREFIX + edge.parent + '-' +edge.child;
 	  $(".edgePath"+edgeSelector).each(function(i, obj){
 		  var oldClass = $(obj).attr("class");
-		  $(obj).attr("class", oldClass + " blood");
+		  $(obj).attr("class", oldClass + " " +cssClass );
 	  });
+	  }
+  var findNodeParentsAndChildren = function(nodeId){
+    var path = graph.getBloodPath(nodeId);
+    addClassForNoeds(path, "blood");
+    var closestNeighbours = graph.getClosestNeighbours(nodeId);
+    for (var n in closestNeighbours.nearNodes){
+  	  var nodeIdSelector="." +closestNeighbours.nearNodes[n];
+  	  var oldClass = $(nodeIdSelector).attr("class");
+  	  $(nodeIdSelector).attr("class", oldClass + " closestNeighbours");
+  	}
+	var pathEdges = graph.getBloodPathEdges(nodeId);
+	for (var edge of pathEdges){
+		addClassForEdge(edge, "blood");
 	  $( "p[class*='"+EDGE_CLASS_PREFIX + edge.parent + '-' +edge.child+"']")
 	     .parentsUntil('.edgeLabel','g').parent().each(function(i, obj) {
 			   var oldClass =  $(obj).attr("class");
 			   $(obj).attr("class", oldClass + " blood");
 	  }); 
+	}
+	for (var e in closestNeighbours.nearEdges){
+		addClassForEdge(closestNeighbours.nearEdges[e],"closestNeighbours");
 	}
   }
   var addNodeConnectionToGraph = function (parentNode, childNode){
@@ -348,9 +363,10 @@ function EcmGraph() {
 	}); 
   }
   var onMouseLeaveHandler= function(){
-    $(".blood, .hovered").each(function(i, obj) {
+    $(".blood, .hovered, .closestNeighbours").each(function(i, obj) {
 	  var oldClass =  $(obj).attr("class");
-	  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", ""));
+	  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", "")
+			  .replace(" closestNeighbours",""));
 	});
   }
   $(function() {
