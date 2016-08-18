@@ -63,7 +63,19 @@ function EcmGraph() {
           + '</a></div>')[0];
     }
   }
-
+  var resolveComponenetLabel=function(component){
+	  var result='<div style="text-align: center;">'+ component.name +  '<br />';
+	  if(component.configurationPolicy != "IGNORE"){
+		  result=result + '<a href="'+appRoot+"/configMgr/"+component.properties["service.pid"]
+		  +"?referer="+window.location.pathname+ window.location.search+ window.location.hash
+		  +'">Edit</a> ';
+	  	}
+	  if(component.properties && Object.getOwnPropertyNames(component.properties).length > 0){
+	    result=result +  '<a href="javascript:deleteConfig(' +"'" +component.properties["service.pid"]
+	      +"'" +')"'+'>Delete</a></div>';
+	  }
+	  return $(result)[0];
+  }
   var htmlEscape = function(text) {
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,
         '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
@@ -176,7 +188,7 @@ function EcmGraph() {
       var additionalClasses = ' componentstate-' + component.state;
       graph.addNewNode(createOrGetUniqueClassForNode(component.nodeId));
       g.setNode(component.nodeId, {
-        label : component.name,
+        label : resolveComponenetLabel(component),
         component : component,
         rx : 5,
         ry : 5,
@@ -298,25 +310,40 @@ function EcmGraph() {
    return ' '+ EDGE_CLASS_PREFIX + createOrGetUniqueClassForNode(fromNodeId)
     + '-' + createOrGetUniqueClassForNode(toNodeId);
   }
-  var findNodeParentsAndChildren = function(nodeId){
-    var path = graph.getBloodPath(nodeId);
-	for (var n in path){
+  var addClassForNoeds=function(path, cssClass){
+    for (var n in path){
 	  var nodeIdSelector="." + n;
 	  var oldClass = $(nodeIdSelector).attr("class");
-	  $(nodeIdSelector).attr("class", oldClass + " blood");
+	  $(nodeIdSelector).attr("class", oldClass + " "+cssClass);
 	}
-	var pathEdges = graph.getBloodPathEdges(nodeId);
-	for (var edge of pathEdges){
+  }
+  var addClassForEdge=function(edge, cssClass){
 	  var edgeSelector="." + EDGE_CLASS_PREFIX + edge.parent + '-' +edge.child;
 	  $(".edgePath"+edgeSelector).each(function(i, obj){
 		  var oldClass = $(obj).attr("class");
-		  $(obj).attr("class", oldClass + " blood");
+		  $(obj).attr("class", oldClass + " " +cssClass );
 	  });
+	  }
+  var findNodeParentsAndChildren = function(nodeId){
+    var path = graph.getBloodPath(nodeId);
+    addClassForNoeds(path, "blood");
+    var closestNeighbours = graph.getClosestNeighbours(nodeId);
+    for (var n in closestNeighbours.nearNodes){
+  	  var nodeIdSelector="." +closestNeighbours.nearNodes[n];
+  	  var oldClass = $(nodeIdSelector).attr("class");
+  	  $(nodeIdSelector).attr("class", oldClass + " closestNeighbours");
+  	}
+	var pathEdges = graph.getBloodPathEdges(nodeId);
+	for (var edge of pathEdges){
+		addClassForEdge(edge, "blood");
 	  $( "p[class*='"+EDGE_CLASS_PREFIX + edge.parent + '-' +edge.child+"']")
 	     .parentsUntil('.edgeLabel','g').parent().each(function(i, obj) {
 			   var oldClass =  $(obj).attr("class");
 			   $(obj).attr("class", oldClass + " blood");
 	  }); 
+	}
+	for (var e in closestNeighbours.nearEdges){
+		addClassForEdge(closestNeighbours.nearEdges[e],"closestNeighbours");
 	}
   }
   var addNodeConnectionToGraph = function (parentNode, childNode){
@@ -336,9 +363,10 @@ function EcmGraph() {
 	}); 
   }
   var onMouseLeaveHandler= function(){
-    $(".blood, .hovered").each(function(i, obj) {
+    $(".blood, .hovered, .closestNeighbours").each(function(i, obj) {
 	  var oldClass =  $(obj).attr("class");
-	  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", ""));
+	  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", "")
+			  .replace(" closestNeighbours",""));
 	});
   }
   $(function() {

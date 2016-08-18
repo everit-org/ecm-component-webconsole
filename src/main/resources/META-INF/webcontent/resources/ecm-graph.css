@@ -84,18 +84,33 @@ g.node.missing>ellipse, g.node.missing>circle {
   opacity: 1;
 }
 .node.hovered circle, .node.hovered rect, .node.hovered ellipse{
-  opacity: 0.2;
+  opacity: 0.1;
 }
 .edgePath.hovered.blood path {
   stroke: black;
   opacity: 1;
 }
 .edgePath.hovered path {
-  opacity: 0.2;
+  opacity: 0.1;
 }
 .edgeLabel.hovered.blood{
 	 opacity: 1;
 }
 .edgeLabel.hovered{
-	 opacity: 0.2;
+	 opacity: 0.1;
 }
+.node.hovered div *{
+	color: rgba(0,0,0,0.1);
+}
+.node.blood.hovered div *{
+	color: rgba(0,0,0,1);
+}
+.node.blood.hovered.closestNeighbours circle, .node.blood.hovered.closestNeighbours rect, .node.blood.hovered.closestNeighbours ellipse{
+	stroke: darkblue;
+	stroke-width: 3;
+}
+.edgePath.hovered.blood.closestNeighbours path {
+    stroke: darkblue;
+	stroke-width: 3;
+	fill: darkblue;
+}	

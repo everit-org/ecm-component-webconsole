@@ -48,5 +48,18 @@
   <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/tipsy/javascripts/jquery.tipsy.js'"></script>
   <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/graph.js'"></script>
   <script type="text/javascript" data-eht-attr-src="pluginRoot + '/res/ecm-graph.js'"></script>
- 
+  <script type="text/javascript"  data-eht-inline="'text'">
+  function deleteConfig(configId) {
+      $.ajax({
+        type : 'POST',
+        url : '@{appRoot}' + '/configMgr/' +  configId + '?apply=1&delete=1',
+        data : 'apply=1&delete=1',
+        dataType : 'json',
+        async : false
+      }).done(function() {
+        location.reload();
+      });
+
+    }
+  </script>
 </div>

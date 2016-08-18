@@ -15,8 +15,8 @@
  */
 function Node(nodeId) {
   this.nodeId=nodeId;
-  this.parents=[];
-  this.children=[];
+  this.parents={};
+  this.children={};
 
 }
 Node.prototype.addChildren= function(node){
@@ -42,7 +42,7 @@ Node.prototype.removeParent= function(node){
 }
 
 function Graph(){
-  this.nodes=[];
+  this.nodes={};
 }
 Graph.prototype.addNewNode= function(nodeId){
   if (!(nodeId in this.nodes)){ 
@@ -81,7 +81,22 @@ Graph.prototype.getChildrenPathReq =function (children,result){
 	   this.getChildrenPathReq( children[attrname].children, result);
 	 }
 }
-
+Graph.prototype.getClosestNeighbours= function(nodeId){
+	var children=this.nodes[nodeId].children;
+	var parents=this.nodes[nodeId].parents;
+	var nearNodes=[];
+	var nearEdges=[];
+	for (var attrname in children) {
+		nearNodes.push( children[attrname].nodeId);
+		nearEdges.push( {parent : nodeId, child :  children[attrname].nodeId});
+	}
+	for (var attrname in parents) {
+		nearNodes.push( parents[attrname].nodeId);
+		nearEdges.push( {parent : parents[attrname].nodeId, child :  nodeId});
+	}
+	var result ={nearNodes: nearNodes,nearEdges: nearEdges };
+	return result;
+}
 Graph.prototype.getBloodPath =function (nodeId){
     var childrenResult=this.getChildrenPath(nodeId);
 	var parentsPathResult=this.getParentsPath(nodeId);
