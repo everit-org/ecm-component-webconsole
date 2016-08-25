@@ -27,7 +27,8 @@ function EcmGraph() {
   var ecmNodes = {};
   var nodeIdByUniqueClass = {};
   var graph=new Graph();
-
+  var clickedNodeClass="";
+  
   var createOrGetUniqueClassForNode = function(nodeId) {
     if (!(nodeId in ecmNodes)){ 
 	  ecmNodes[nodeId]=NODE_CLASS_PREFIX + (++nodeCounter);
@@ -301,7 +302,9 @@ function EcmGraph() {
         html : true
       });
     });
+	$(".ecm-graph").click(otherElementsClick);
     $( "circle, rect, ellipse" ).parent()
+      .click(onNodeClicked)
       .mouseenter(onMouseOverHandler)
       .mouseleave(onMouseLeaveHandler);
     $("p[class*='ecm-edge-']").parentsUntil('.edgeLabel','g').parent().css("opacity", "");
@@ -351,6 +354,7 @@ function EcmGraph() {
 	      ,createOrGetUniqueClassForNode(childNode));
   }
   var onMouseOverHandler= function(){
+  if(clickedNodeClass===""){
     var nodeClass=nodeClassRegex.exec($(this).attr('class'))[0];
 	var oldCurrentNodeClass =  $(this).attr("class");
 	$(this).attr("class", oldCurrentNodeClass + " selectedNode");
@@ -364,12 +368,36 @@ function EcmGraph() {
 	   $(obj).attr("class", oldClass + " hovered");
 	}); 
   }
+  }
   var onMouseLeaveHandler= function(){
+  if(clickedNodeClass===""){
     $(".blood, .hovered, .closestNeighbours, .selectedNode").each(function(i, obj) {
 	  var oldClass =  $(obj).attr("class");
 	  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", "")
 			  .replace(" closestNeighbours","").replace(" selectedNode",""));
 	});
+  }
+  }
+  var onNodeClicked= function(e){
+  console.log("node click");
+   e.stopPropagation();
+	var clickedNodeIdClass=nodeClassRegex.exec($(this).attr('class'))[0];
+    if(clickedNodeClass===""){
+      clickedNodeClass=clickedNodeIdClass;
+	}else {
+      if(clickedNodeClass==clickedNodeIdClass){
+	    return ;
+	  }else {
+	  clickedNodeClass="";
+	  onMouseLeaveHandler();
+	  }
+	}
+  }
+  var otherElementsClick=function(e){
+    console.log("other click");
+	 e.stopPropagation();
+	 clickedNodeClass="";
+	 onMouseLeaveHandler();
   }
   $(function() {
     resizeEcmGraphSVG();
