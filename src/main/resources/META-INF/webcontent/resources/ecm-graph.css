@@ -38,10 +38,6 @@ g.componentstate-ACTIVE.guessed>circle, g.componentstate-ACTIVE.guessed>rect {
     fill: #FCF8E3;
 }
 
-g.componentstate-ACTIVE>circle:hover, g.componentstate-ACTIVE>.label:hover, g.componentstate-ACTIVE>rect:hover {
-    opacity: 0.3;
-    transition: opacity 0.5s;
-}
 
 g.componentstate-FAILED>circle, g.componentstate-FAILED>rect, g.componentstate-FAILED_PERMANENT>circle, g.componentstate_FAILED_PERMANENT>rect
     {
@@ -83,6 +79,10 @@ g.node.missing>ellipse, g.node.missing>circle {
 .node.blood.hovered circle, .node.blood.hovered rect, .node.blood.hovered ellipse{
   opacity: 1;
 }
+.node.selectedNode circle, .node.selectedNode rect, .node.selectedNode ellipse{
+  stroke: darkblue;
+  stroke-width: 3;
+}
 .node.hovered circle, .node.hovered rect, .node.hovered ellipse{
   opacity: 0.1;
 }
@@ -106,11 +106,11 @@ g.node.missing>ellipse, g.node.missing>circle {
 	color: rgba(0,0,0,1);
 }
 .node.blood.hovered.closestNeighbours circle, .node.blood.hovered.closestNeighbours rect, .node.blood.hovered.closestNeighbours ellipse{
-	stroke: darkblue;
+	stroke: lightblue;
 	stroke-width: 3;
 }
 .edgePath.hovered.blood.closestNeighbours path {
-    stroke: darkblue;
+    stroke: lightblue;
 	stroke-width: 3;
-	fill: darkblue;
+	fill: lightblue;
 }	
