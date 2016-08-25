@@ -352,6 +352,8 @@ function EcmGraph() {
   }
   var onMouseOverHandler= function(){
     var nodeClass=nodeClassRegex.exec($(this).attr('class'))[0];
+	var oldCurrentNodeClass =  $(this).attr("class");
+	$(this).attr("class", oldCurrentNodeClass + " selectedNode");
 	findNodeParentsAndChildren(nodeClass);
 	$( "circle, rect, ellipse, path").parent().not("." + nodeClass).each(function(i, obj) {
 	  var oldClass =  $(obj).attr("class");
@@ -363,10 +365,10 @@ function EcmGraph() {
 	}); 
   }
   var onMouseLeaveHandler= function(){
-    $(".blood, .hovered, .closestNeighbours").each(function(i, obj) {
+    $(".blood, .hovered, .closestNeighbours, .selectedNode").each(function(i, obj) {
 	  var oldClass =  $(obj).attr("class");
 	  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", "")
-			  .replace(" closestNeighbours",""));
+			  .replace(" closestNeighbours","").replace(" selectedNode",""));
 	});
   }
   $(function() {
