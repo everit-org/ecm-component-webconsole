@@ -77,9 +77,10 @@ public final class ECMGraphGenerator {
    * @return The graph.
    */
   public static ECMGraphDTO generate(
-      final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker) {
+      final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
+      final Filter filter) {
 
-    ECMGraphGenerator generator = new ECMGraphGenerator(containerTracker);
+    ECMGraphGenerator generator = new ECMGraphGenerator(containerTracker, filter);
     return generator.generate();
   }
 
@@ -88,6 +89,8 @@ public final class ECMGraphGenerator {
   private final Set<ComponentNodeDTO> componentNodes = new HashSet<>();
 
   private final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker;
+
+  private Filter filter;
 
   private final List<GuessedServiceCapability> guessedServiceCapabilities =
       new ArrayList<>();
@@ -99,8 +102,10 @@ public final class ECMGraphGenerator {
       new HashMap<>();
 
   private ECMGraphGenerator(
-      final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker) {
+      final ServiceTracker<ComponentContainer<?>, ComponentContainer<?>> containerTracker,
+      final Filter filter) {
     this.containerTracker = containerTracker;
+    this.filter = filter;
   }
 
   private void addImplementedInterfacesToSet(final Class<?> clazz, final Set<String> result) {
@@ -156,7 +161,7 @@ public final class ECMGraphGenerator {
     Iterator<GuessedServiceCapability> iterator = guessedServiceCapabilities.iterator();
 
     String capabilityNodeId = null;
-    while (capabilityNodeId == null && iterator.hasNext()) {
+    while ((capabilityNodeId == null) && iterator.hasNext()) {
       GuessedServiceCapability guessedServiceCapability = iterator.next();
       String objectClass = componentRequirement.getDirectives().get(Constants.OBJECTCLASS);
       if (guessedServiceCapability.objectclasses.contains(objectClass)) {
@@ -218,7 +223,7 @@ public final class ECMGraphGenerator {
     result.directives = Collections.emptyMap();
     result.bundleId = bundleCapability.getRevision().getBundle().getBundleId();
 
-    capabilityNodes.put(result.nodeId, result);
+    putCapabilityNode(result);
     return result;
   }
 
@@ -279,7 +284,7 @@ public final class ECMGraphGenerator {
           capabilityNode.directives = directives;
 
           capabilityNode.capabilityType = CapabilityType.SERVICE;
-          capabilityNodes.put(capabilityNode.nodeId, capabilityNode);
+          putCapabilityNode(capabilityNode);
 
           GuessedServiceCapability guessedserviceCapability = new GuessedServiceCapability();
           guessedserviceCapability.objectclasses = serviceClasses;
@@ -365,8 +370,9 @@ public final class ECMGraphGenerator {
     processComponentCapabilities(componentRevision, componentNodeIdBaseData);
     componentNode.requirements =
         processComponentRequirements(componentRevision);
-
-    componentNodes.add(componentNode);
+    if ((filter == null) || (filter.matches(componentNode.properties))) {
+      componentNodes.add(componentNode);
+    }
   }
 
   private CapabilityNodeDTO processServiceReference(final ServiceReference<?> serviceReference) {
@@ -393,7 +399,7 @@ public final class ECMGraphGenerator {
     capabilityNode.attributes = new AttributeMap(attributes);
     capabilityNode.directives = Collections.emptyMap();
 
-    capabilityNodes.put(nodeId, capabilityNode);
+    putCapabilityNode(capabilityNode);
     return capabilityNode;
   }
 
@@ -423,6 +429,12 @@ public final class ECMGraphGenerator {
 
     for (Entry<ComponentRequirementDTO, ComponentRequirement<?, ?>> entry : entrySet) {
       processUnsatisfiedRequirement(entry.getValue(), entry.getKey());
+    }
+  }
+
+  private void putCapabilityNode(final CapabilityNodeDTO result) {
+    if ((filter == null) || (filter.matches(result.attributes))) {
+      capabilityNodes.put(result.nodeId, result);
     }
   }
 
@@ -469,7 +481,7 @@ public final class ECMGraphGenerator {
     int result = -1;
     int i = 0;
     Iterator<Capability> iterator = capabilities.iterator();
-    while (result == -1 && iterator.hasNext()) {
+    while ((result == -1) && iterator.hasNext()) {
       Capability capability = iterator.next();
       if (capability.equals(bundleCapability)) {
         result = i;

@@ -394,7 +394,6 @@ function EcmGraph() {
 	}
   }
   var otherElementsClick=function(e){
-    console.log("other click");
 	 e.stopPropagation();
 	 clickedNodeClass="";
 	 onMouseLeaveHandler();
@@ -425,8 +424,11 @@ function EcmGraph() {
   this.refresh = function() {
     $.ajax({
       url : appRoot + '/everit_ecm_component_graph/graph.json',
+      data : { graphFilter :  $("#graphFilter").val()}
     }).done(function(data) {
       renderECMGraph(data);
+    }).fail(function(data){
+    	console.log("request failed");
     });
   }
 }

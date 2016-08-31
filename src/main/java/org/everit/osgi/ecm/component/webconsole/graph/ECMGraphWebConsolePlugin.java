@@ -35,6 +35,9 @@ import org.everit.templating.TemplateCompiler;
 import org.everit.templating.html.HTMLTemplateCompiler;
 import org.everit.templating.text.TextTemplateCompiler;
 import org.everit.web.servlet.HttpServlet;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.google.gson.Gson;
@@ -102,11 +105,11 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
     return ECMGraphWebConsolePlugin.class.getClassLoader().getResource(resourcePath);
   }
 
-  private void renderGraphJson(final HttpServletResponse resp)
+  private void renderGraphJson(final HttpServletResponse resp, final Filter filter)
       throws IOException {
     resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
     resp.setContentType("application/json");
-    ECMGraphDTO ecmGraph = ECMGraphGenerator.generate(containerTracker);
+    ECMGraphDTO ecmGraph = ECMGraphGenerator.generate(containerTracker, filter);
 
     String json = GSON.toJson(ecmGraph);
     resp.getWriter().write(json);
@@ -117,9 +120,21 @@ public class ECMGraphWebConsolePlugin extends HttpServlet {
       throws ServletException, IOException {
 
     String pathInfo = req.getPathInfo().substring(PLUGIN_ROOT_LENGTH_IN_PATHINFO);
-
     if ("/graph.json".equals(pathInfo)) {
-      renderGraphJson(resp);
+      String graphFilter = req.getParameter("graphFilter");
+      if ((graphFilter != null) && !graphFilter.isEmpty()) {
+        try {
+          Filter filter = FrameworkUtil.createFilter(graphFilter);
+          renderGraphJson(resp, filter);
+          return;
+        } catch (InvalidSyntaxException e) {
+          resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          resp.getWriter().append(e.getMessage());
+          return;
+        }
+      } else {
+        renderGraphJson(resp, null);
+      }
       return;
     }
 
