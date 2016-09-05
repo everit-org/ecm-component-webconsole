@@ -34,8 +34,8 @@
 
 <script type="text/javascript">
  QUnit.test("Node Test", function( assert ) {
- var node1=new Node("aa");
- var node2=new Node("bb");
+ var node1=new Node("aa", "");
+ var node2=new Node("bb", "");
  node1.addChildren(node2);
  node1.addChildren(node2);
  assert.equal( Object.keys(node1.children).length, 1);
@@ -52,18 +52,18 @@
  
  QUnit.test("Graph test", function( assert ) {
  var graph=new Graph();
- graph.addNewNode("node1/orphan");
+ graph.addNewNode("node1/orphan","");
  assert.equal( Object.keys(graph.nodes).length, 1);
- graph.addNodeConnection("node1","node2");
+ graph.addNodeConnection("node1", "","node2", "");
  assert.equal( Object.keys(graph.nodes).length, 3);
-  graph.addNodeConnection("node2","node3");
+  graph.addNodeConnection("node2", "","node3","");
   assert.equal( Object.keys(graph.nodes).length, 4);
   var parents=graph.getParentsPath("node3");
   assert.equal( Object.keys(parents).length, 2);
   assert.equal( Object.keys(graph.getParentsPath("node2")).length, 1);
   assert.equal( Object.keys(graph.getParentsPath("node1")).length, 0);
   assert.equal( Object.keys(graph.getParentsPath("node1/orphan")).length, 0);
-  graph.addNodeConnection("node4","node2");
+  graph.addNodeConnection("node4","","node2","");
   assert.equal( Object.keys(graph.getParentsPath("node2")).length, 2);
   assert.equal( Object.keys(graph.getParentsPath("node3")).length, 3);
   assert.equal( Object.keys(graph.getChildrenPath("node3")).length, 0);
@@ -77,12 +77,12 @@
  });
  QUnit.test("Edge test", function( assert ) {
  var graph=new Graph();
- graph.addNewNode("node1/orphan");
- graph.addNodeConnection("node1","node2");
- graph.addNodeConnection("node2","node3");
- graph.addNodeConnection("node4","node2");
- graph.addNodeConnection("node1","node4");
- graph.addNodeConnection("node5","node4");
+ graph.addNewNode("node1/orphan","");
+ graph.addNodeConnection("node1","","node2","");
+ graph.addNodeConnection("node2","","node3","");
+ graph.addNodeConnection("node4","","node2","");
+ graph.addNodeConnection("node1","","node4","");
+ graph.addNodeConnection("node5","","node4","");
  assert.equal( graph.getBloodPathEdges("node2").length, 5);
  assert.equal( graph.getBloodPathEdges("node1/orphan").length, 0);
  assert.equal(graph.getBloodPathEdges("node1").length,4);
@@ -94,6 +94,18 @@
  
  });
 
+ QUnit.test("Search test", function( assert ) {
+	 var graph=new Graph();
+	 graph.addNewNode("orphan",{prop1: "data1",prop2: "data2"});
+	 graph.addNodeConnection("node1",{prop1: "node1-data1",prop2: "node1-data2"},"node2",{prop1: "node2-data1",prop2: "node2-data2"});
+	 graph.addNodeConnection("node2",{prop1: "node2-data1",prop2: "node2-data2"},"node3",{prop1: "node3-data1",prop2: "node3-data2"});
+	 assert.equal( Object.keys(graph.nodes).length, 4);
+	 assert.deepEqual(graph.search("","data2"),["orphan","node1","node2","node3"] );
+	 assert.deepEqual(graph.search("","node2"),["node2"] );
+	
+	 
+	 });
+ 
 </script>
 </body>
 </html>

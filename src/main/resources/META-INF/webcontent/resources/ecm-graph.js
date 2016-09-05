@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+  graph=new Graph();
+   g = new dagreD3.graphlib.Graph().setGraph({});
 function EcmGraph() {
   const nodeClassRegex=/ecm-node-[^\s ]*/i;
   const NODE_CLASS_PREFIX="ecm-node-";
   const EDGE_CLASS_PREFIX="ecm-edge-id";
   // Create the input graph
-  var g = new dagreD3.graphlib.Graph().setGraph({});
+ 
   var appRoot = $('div.ecm-graph').attr('data-ecm-appRoot');
   var entityCounter = 0;
   var nodeCounter = 0;
   var ecmEdges = {};
   var ecmNodes = {};
   var nodeIdByUniqueClass = {};
-  var graph=new Graph();
+
   var clickedNodeClass="";
   
   var createOrGetUniqueClassForNode = function(nodeId) {
@@ -157,7 +158,7 @@ function EcmGraph() {
 
   var addCapabilityNodeWithEdge = function(capability) {
     var additionalClasses = resolveCapabilityAdditionalClasses(capability);
-    graph.addNewNode(createOrGetUniqueClassForNode(capability.nodeId));
+    graph.addNewNode(createOrGetUniqueClassForNode(capability.nodeId),capability.attributes);
     g.setNode(capability.nodeId, {
       label : resolveCapabilityLabel(capability),
       shape : resolveShapeByCapabilityType(capability.capabilityType),
@@ -169,7 +170,7 @@ function EcmGraph() {
     if (capability.componentNodeId) {
       var edgeUniqueClass = createUniqueClassForEdge(capability.nodeId,
           capability.componentNodeId);
-      addNodeConnectionToGraph(capability.nodeId, capability.componentNodeId);
+      addNodeConnectionToGraph(capability.nodeId,capability.attributes, capability.componentNodeId,"");
       g.setEdge(capability.nodeId, capability.componentNodeId, {
         arrowhead : 'undirected',
         arrowheadClass : 'arrowhead ' + edgeUniqueClass,
@@ -187,7 +188,7 @@ function EcmGraph() {
     for (i = 0; i < components.length; i++) {
       var component = components[i];
       var additionalClasses = ' componentstate-' + component.state;
-      graph.addNewNode(createOrGetUniqueClassForNode(component.nodeId));
+      graph.addNewNode(createOrGetUniqueClassForNode(component.nodeId),component.properties);
       g.setNode(component.nodeId, {
         label : resolveComponenetLabel(component),
         component : component,
@@ -204,7 +205,7 @@ function EcmGraph() {
             requirement.capabilityNodeId);
 
         if (requirement.capabilityNodeId) {
-          addNodeConnectionToGraph(component.nodeId, requirement.capabilityNodeId);
+          addNodeConnectionToGraph(component.nodeId,component.properties, requirement.capabilityNodeId,"");
           var edgeIdClass= getEdgeClass(component.nodeId,requirement.capabilityNodeId);
           g.setEdge(component.nodeId, requirement.capabilityNodeId,
               {
@@ -228,7 +229,7 @@ function EcmGraph() {
 
           var edgeUniqueClass = createUniqueClassForEdge(component.nodeId,
               missingNodeId);
-          addNodeConnectionToGraph(component.nodeId, missingNodeId);
+          addNodeConnectionToGraph(component.nodeId,component.properties, missingNodeId,"");
           var edgeIdClass= getEdgeClass(component.nodeId,missingNodeId);
           g.setEdge(component.nodeId, missingNodeId,
               {
@@ -302,9 +303,9 @@ function EcmGraph() {
         html : true
       });
     });
-	$(".ecm-graph").click(otherElementsClick);
+	$(".ecm-graph").dblclick(otherElementsClick);
     $( "circle, rect, ellipse" ).parent()
-      .click(onNodeClicked)
+      .dblclick(onNodeClicked)
       .mouseenter(onMouseOverHandler)
       .mouseleave(onMouseLeaveHandler);
     $("p[class*='ecm-edge-']").parentsUntil('.edgeLabel','g').parent().css("opacity", "");
@@ -349,9 +350,9 @@ function EcmGraph() {
 		addClassForEdge(closestNeighbours.nearEdges[e],"closestNeighbours");
 	}
   }
-  var addNodeConnectionToGraph = function (parentNode, childNode){
-    graph.addNodeConnection(createOrGetUniqueClassForNode(parentNode)
-	      ,createOrGetUniqueClassForNode(childNode));
+  var addNodeConnectionToGraph = function (parentNode,parentData, childNode,childData){
+    graph.addNodeConnection(createOrGetUniqueClassForNode(parentNode),parentData
+	      ,createOrGetUniqueClassForNode(childNode),childData);
   }
   var onMouseOverHandler= function(){
   if(clickedNodeClass===""){
@@ -379,19 +380,40 @@ function EcmGraph() {
   }
   }
   var onNodeClicked= function(e){
-  console.log("node click");
    e.stopPropagation();
 	var clickedNodeIdClass=nodeClassRegex.exec($(this).attr('class'))[0];
-    if(clickedNodeClass===""){
-      clickedNodeClass=clickedNodeIdClass;
-	}else {
-      if(clickedNodeClass==clickedNodeIdClass){
-	    return ;
-	  }else {
-	  clickedNodeClass="";
-	  onMouseLeaveHandler();
-	  }
-	}
+	if(clickedNodeClass===""){
+	      clickedNodeClass=clickedNodeIdClass;
+		}else {
+	      if(clickedNodeClass==clickedNodeIdClass){
+		    return ;
+		  }else {
+		  clickedNodeClass="";
+		  onMouseLeaveHandler();
+		  }
+		}
+  }
+  EcmGraph.prototype.onNodeHighLight=function(nodeClass){
+	  clickedNodeClass=nodeClass;
+	  var oldCurrentNodeClass =  $("."+nodeClass).attr("class");
+	  $("."+nodeClass).attr("class", oldCurrentNodeClass + " selectedNode");
+	  findNodeParentsAndChildren(nodeClass);
+		$( "circle, rect, ellipse, path").parent().not("." + nodeClass).each(function(i, obj) {
+		  var oldClass =  $(obj).attr("class");
+		  $(obj).attr("class", oldClass + " hovered");
+		});
+		$( "p[class*='ecm-edge-']").parentsUntil('.edgeLabel','g').parent().each(function(i, obj) {
+		   var oldClass =  $(obj).attr("class");
+		   $(obj).attr("class", oldClass + " hovered");
+		}); 
+  }
+  
+  EcmGraph.prototype.removeHighLight=function(){
+	  $(".blood, .hovered, .closestNeighbours, .selectedNode").each(function(i, obj) {
+		  var oldClass =  $(obj).attr("class");
+		  $(obj).attr("class", oldClass.replace(" blood", "").replace(" hovered", "")
+				  .replace(" closestNeighbours","").replace(" selectedNode",""));
+		});
   }
   var otherElementsClick=function(e){
 	 e.stopPropagation();
@@ -433,4 +455,4 @@ function EcmGraph() {
   }
 }
 
-var ecmGraph = new EcmGraph();
+ ecmGraph = new EcmGraph();
