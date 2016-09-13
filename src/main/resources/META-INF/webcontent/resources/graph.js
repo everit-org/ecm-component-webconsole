@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function Node(nodeId) {
+function Node(nodeId , data) {
   this.nodeId=nodeId;
   this.parents={};
   this.children={};
-
+  this.data=data;
 }
 Node.prototype.addChildren= function(node){
   this.children[node.nodeId]=node;
@@ -44,17 +44,17 @@ Node.prototype.removeParent= function(node){
 function Graph(){
   this.nodes={};
 }
-Graph.prototype.addNewNode= function(nodeId){
+Graph.prototype.addNewNode= function(nodeId, data){
   if (!(nodeId in this.nodes)){ 
-      this.nodes[nodeId]=new Node(nodeId);
+      this.nodes[nodeId]=new Node(nodeId, data);
   }
 }
 
-Graph.prototype.addNodeConnection= function(parentNodeId, childrenNodeId){
-  this.addNewNode(parentNodeId);
-  this.addNewNode(childrenNodeId);
-  this.nodes[parentNodeId].addChildren(this.nodes[childrenNodeId]);
-  this.nodes[childrenNodeId].addParent(this.nodes[parentNodeId]);
+Graph.prototype.addNodeConnection= function(parentNodeId, parentData, childNodeId, childData){
+  this.addNewNode(parentNodeId, parentData);
+  this.addNewNode(childNodeId, childData);
+  this.nodes[parentNodeId].addChildren(this.nodes[childNodeId]);
+  this.nodes[childNodeId].addParent(this.nodes[parentNodeId]);
 }
 
 Graph.prototype.getParentsPath= function(nodeId){
@@ -139,4 +139,24 @@ Graph.prototype.getParentsPathEdgesReq =function (nodeId,accessedNodes,result){
 		 this.getParentsPathEdgesReq(attrname,accessedNodes,result);
 	   }
    }
+}
+Graph.prototype.search=function(key, value){
+	 var rval=[];
+	 //onyl value search
+	 if(isBlank(key)&& !isBlank(value)){
+	  for (var nodeId in this.nodes) {
+		 var nodeData=this.nodes[nodeId].data;
+		 var keys = Object.keys( nodeData );
+		 for (k of keys){
+			 if(nodeData[k].indexOf( value)!=-1){
+				 rval.push(nodeId);
+				 break;
+			 }
+		 }
+	  }
+	 }
+	 return rval;
+}
+function isBlank(str) {
+    return (!str || /^\s*$/.test(str));
 }
