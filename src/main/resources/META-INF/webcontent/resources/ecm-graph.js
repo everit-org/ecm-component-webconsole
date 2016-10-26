@@ -31,7 +31,7 @@ function EcmGraph() {
   var clickedNodeClass="";
   
   var createOrGetUniqueClassForNode = function(nodeId) {
-    if (!(nodeId in ecmNodes)){ 
+    if (!(nodeId in ecmNodes)){
 	  ecmNodes[nodeId]=NODE_CLASS_PREFIX + (++nodeCounter);
 	}
     return ecmNodes[nodeId];
@@ -390,6 +390,8 @@ function EcmGraph() {
 		  }else {
 		  clickedNodeClass="";
 		  onMouseLeaveHandler();
+		  onMouseOverHandler();
+		  clickedNodeClass=clickedNodeIdClass;
 		  }
 		}
   }

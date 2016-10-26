@@ -14,50 +14,49 @@
  * limitations under the License.
  */
 body {
-    font: 300 14px 'Helvetica Neue', Helvetica;
+  font: 300 14px 'Helvetica Neue', Helvetica;
 }
 
 .node circle, .node ellipse, .node rect {
-    stroke: #333;
+  stroke: #333;
 }
 
 .edgePath path {
-    stroke: #333;
-    stroke-width: 1.5px;
+  stroke: #333;
+  stroke-width: 1.5px;
 }
 
 .arrowhead {
-    fill: #333;
+  fill: #333;
 }
 
 g.componentstate-ACTIVE>circle, g.componentstate-ACTIVE>rect {
-    fill: #D2ED9E;
+  fill: #D2ED9E;
 }
 
 g.componentstate-ACTIVE.guessed>circle, g.componentstate-ACTIVE.guessed>rect {
-    fill: #FCF8E3;
+  fill: #FCF8E3;
 }
 
-
-g.componentstate-FAILED>circle, g.componentstate-FAILED>rect, g.componentstate-FAILED_PERMANENT>circle, g.componentstate_FAILED_PERMANENT>rect
-    {
-    fill: #F2DEDE;
+g.componentstate-FAILED>circle, g.componentstate-FAILED>rect, g.componentstate-FAILED_PERMANENT>circle,
+  g.componentstate_FAILED_PERMANENT>rect {
+  fill: #F2DEDE;
 }
 
 g.componentstate-UNSATISFIED>circle, g.componentstate-UNSATISFIED>rect {
-    fill: #FCF8E3;
+  fill: #FCF8E3;
 }
 
 g.componentstate-STARTING>rect, g.componentstate-STOPPING>rect {
-    fill: #D9EDF7;
+  fill: #D9EDF7;
 }
 
 g.componentstate-STARTING>circle, g.componentstate-STOPPING>circle {
-    fill: #FCF8E3;
+  fill: #FCF8E3;
 }
 
 g.componentstate-STARTING.guessed>circle, g.componentstate-STOPPING.guessed>circle {
-    fill: #FCF8E3;
+  fill: #FCF8E3;
 }
 
 g>ellipse {
@@ -69,48 +68,59 @@ g.node.missing>ellipse, g.node.missing>circle {
 }
 
 .node text {
-    pointer-events: none;
+  pointer-events: none;
 }
 
 .hovering {
-    opacity: 0.3;
+  opacity: 0.3;
 }
 
-.node.blood.hovered circle, .node.blood.hovered rect, .node.blood.hovered ellipse{
+.node.blood.hovered circle, .node.blood.hovered rect, .node.blood.hovered ellipse {
   opacity: 1;
 }
-.node.selectedNode circle, .node.selectedNode rect, .node.selectedNode ellipse{
+
+.node.selectedNode circle, .node.selectedNode rect, .node.selectedNode ellipse {
   stroke: darkblue;
   stroke-width: 3;
 }
-.node.hovered circle, .node.hovered rect, .node.hovered ellipse{
+
+.node.hovered circle, .node.hovered rect, .node.hovered ellipse {
   opacity: 0.1;
 }
+
 .edgePath.hovered.blood path {
   stroke: black;
   opacity: 1;
 }
+
 .edgePath.hovered path {
   opacity: 0.1;
 }
-.edgeLabel.hovered.blood{
-	 opacity: 1;
+
+.edgeLabel.hovered.blood {
+  opacity: 1;
 }
-.edgeLabel.hovered{
-	 opacity: 0.1;
+
+.edgeLabel.hovered {
+  opacity: 0.1;
 }
-.node.hovered div *{
-	color: rgba(0,0,0,0.1);
+
+.node.hovered div * {
+  color: rgba(0, 0, 0, 0.1);
 }
-.node.blood.hovered div *{
-	color: rgba(0,0,0,1);
+
+.node.blood.hovered div * {
+  color: rgba(0, 0, 0, 1);
 }
-.node.blood.hovered.closestNeighbours circle, .node.blood.hovered.closestNeighbours rect, .node.blood.hovered.closestNeighbours ellipse{
-	stroke: lightblue;
-	stroke-width: 3;
+
+.node.blood.hovered.closestNeighbours circle, .node.blood.hovered.closestNeighbours rect, .node.blood.hovered.closestNeighbours ellipse
+  {
+  stroke: lightblue;
+  stroke-width: 3;
 }
+
 .edgePath.hovered.blood.closestNeighbours path {
-    stroke: lightblue;
-	stroke-width: 3;
-	fill: lightblue;
-}	
+  stroke: lightblue;
+  stroke-width: 3;
+  fill: lightblue;
+}

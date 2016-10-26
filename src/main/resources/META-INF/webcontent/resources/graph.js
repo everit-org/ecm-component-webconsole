@@ -142,7 +142,7 @@ Graph.prototype.getParentsPathEdgesReq =function (nodeId,accessedNodes,result){
 }
 Graph.prototype.search=function(key, value){
 	 var rval=[];
-	 //onyl value search
+	 // onyl value search
 	 if(isBlank(key)&& !isBlank(value)){
 	  for (var nodeId in this.nodes) {
 		 var nodeData=this.nodes[nodeId].data;
