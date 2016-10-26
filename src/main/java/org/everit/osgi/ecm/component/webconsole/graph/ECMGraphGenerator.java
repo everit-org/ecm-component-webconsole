@@ -318,11 +318,17 @@ public final class ECMGraphGenerator {
       if (capability instanceof ServiceCapability) {
         result.acceptedCapabilityType = CapabilityType.SERVICE;
         ServiceCapability serviceCapability = (ServiceCapability) capability;
+        if (filter != null && !filter.matches(serviceCapability.getAttributes())) {
+          return null;
+        }
         result.capabilityNodeId =
             processServiceReference(serviceCapability.getServiceReference()).nodeId;
       } else if (capability instanceof BundleCapability) {
         result.acceptedCapabilityType = CapabilityType.BUNDLE_CAPABILITY;
         BundleCapability bundleCapability = (BundleCapability) capability;
+        if (filter != null && !filter.matches(bundleCapability.getAttributes())) {
+          return null;
+        }
         result.capabilityNodeId = processBundleCapability(bundleCapability).nodeId;
       }
     }
@@ -338,7 +344,12 @@ public final class ECMGraphGenerator {
     for (Requirement requirement : requirements) {
       if (requirement instanceof ComponentRequirement) {
         ComponentRequirement<?, ?> componentRequirement = (ComponentRequirement<?, ?>) requirement;
-        result.add(processComponentRequirement(componentRequirement));
+        ComponentRequirementDTO componentRequirementDTO =
+            processComponentRequirement(componentRequirement);
+
+        if (componentRequirementDTO != null) {
+          result.add(componentRequirementDTO);
+        }
       }
     }
     return result.toArray(new ComponentRequirementDTO[result.size()]);
@@ -368,9 +379,10 @@ public final class ECMGraphGenerator {
     componentNode.description = objectClassDefinition.getDescription();
 
     processComponentCapabilities(componentRevision, componentNodeIdBaseData);
-    componentNode.requirements =
-        processComponentRequirements(componentRevision);
+
     if ((filter == null) || (filter.matches(componentNode.properties))) {
+      componentNode.requirements =
+          processComponentRequirements(componentRevision);
       componentNodes.add(componentNode);
     }
   }
