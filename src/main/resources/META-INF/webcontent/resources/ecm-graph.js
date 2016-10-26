@@ -158,7 +158,7 @@ function EcmGraph() {
 
   var addCapabilityNodeWithEdge = function(capability) {
     var additionalClasses = resolveCapabilityAdditionalClasses(capability);
-    graph.addNewNode(createOrGetUniqueClassForNode(capability.nodeId),capability.attributes);
+    graph.addNewNode(createOrGetUniqueClassForNode(capability.nodeId),capability.attributes, "");
     g.setNode(capability.nodeId, {
       label : resolveCapabilityLabel(capability),
       shape : resolveShapeByCapabilityType(capability.capabilityType),
@@ -188,7 +188,7 @@ function EcmGraph() {
     for (i = 0; i < components.length; i++) {
       var component = components[i];
       var additionalClasses = ' componentstate-' + component.state;
-      graph.addNewNode(createOrGetUniqueClassForNode(component.nodeId),component.properties);
+      graph.addNewNode(createOrGetUniqueClassForNode(component.nodeId),component.properties, component.name);
       g.setNode(component.nodeId, {
         label : resolveComponenetLabel(component),
         component : component,

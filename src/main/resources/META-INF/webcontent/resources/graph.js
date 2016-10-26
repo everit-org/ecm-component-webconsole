@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function Node(nodeId , data) {
+function Node(nodeId , data, searchable) {
   this.nodeId=nodeId;
   this.parents={};
   this.children={};
   this.data=data;
+  this.searchable = searchable;
 }
 Node.prototype.addChildren= function(node){
   this.children[node.nodeId]=node;
@@ -44,9 +45,9 @@ Node.prototype.removeParent= function(node){
 function Graph(){
   this.nodes={};
 }
-Graph.prototype.addNewNode= function(nodeId, data){
+Graph.prototype.addNewNode= function(nodeId, data, searchable){
   if (!(nodeId in this.nodes)){ 
-      this.nodes[nodeId]=new Node(nodeId, data);
+      this.nodes[nodeId]=new Node(nodeId, data, searchable);
   }
 }
 
@@ -144,14 +145,11 @@ Graph.prototype.search=function(key, value){
 	 var rval=[];
 	 // onyl value search
 	 if(isBlank(key)&& !isBlank(value)){
+	   var lowerValue = value.toLowerCase();
 	  for (var nodeId in this.nodes) {
-		 var nodeData=this.nodes[nodeId].data;
-		 var keys = Object.keys( nodeData );
-		 for (k of keys){
-			 if(nodeData[k].indexOf( value)!=-1){
-				 rval.push(nodeId);
-				 break;
-			 }
+		 var searchable = this.nodes[nodeId].searchable;
+		 if (!isBlank(searchable) && searchable.toLowerCase().indexOf(lowerValue) >= 0) {
+		   rval.push(nodeId);
 		 }
 	  }
 	 }
