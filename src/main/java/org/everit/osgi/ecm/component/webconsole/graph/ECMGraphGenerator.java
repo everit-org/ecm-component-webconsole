@@ -258,6 +258,7 @@ public final class ECMGraphGenerator {
           resolveGuessedServiceClasses(componentMetadata, componentRevision
               .getDeclaringResource().getBundle().adapt(BundleWiring.class).getClassLoader());
 
+      int guessedServiceCounter = 0;
       for (Set<String> serviceClasses : guessedServiceInstanceClasses) {
         if (!activeServiceClasses.contains(serviceClasses)) {
           CapabilityNodeDTO capabilityNode = new CapabilityNodeDTO();
@@ -266,7 +267,7 @@ public final class ECMGraphGenerator {
               resolveComponentNodeId(componentNodeIdBaseData,
                   componentProperties.get(Constants.SERVICE_PID));
 
-          capabilityNode.nodeId = "guessedService." + componentNodeId;
+          capabilityNode.nodeId = "guessedService." + componentNodeId + guessedServiceCounter++;
           capabilityNode.componentNodeId = componentNodeId;
           capabilityNode.componentState = componentState;
           capabilityNode.namespace = "osgi.service";
