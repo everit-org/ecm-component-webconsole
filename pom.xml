@@ -28,7 +28,7 @@
 
   <groupId>org.everit.osgi</groupId>
   <artifactId>org.everit.osgi.ecm.component.webconsole</artifactId>
-  <version>3.0.2-SNAPSHOT</version>
+  <version>3.0.2</version>
 
   <packaging>bundle</packaging>
 
